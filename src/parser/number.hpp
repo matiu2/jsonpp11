@@ -44,10 +44,11 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 /// @tparam iterator_traits iterator traits for 'iterator'
 /// @param p Points to the first character of the number
 /// @param pe Points to one past the end of the JSON input
+/// @param output will be filled with the value of the number we parse
 template <typename Output, typename iterator,
           typename iterator_traits = std::iterator_traits<iterator>>
-inline std::pair<Output, iterator>
-parseNumber(iterator p, iterator pe,
+inline iterator
+parseNumber(iterator p, iterator pe, Output &output,
             ErrorThrower<iterator> onError = throwError<iterator>) {
 
   static_assert(is_input_iterator<iterator_traits>(),
@@ -241,18 +242,20 @@ parseNumber(iterator p, iterator pe,
     return END;
   };
   /// Turns all our gathered data into useable result
-  auto makeNumber = [&]() -> Output {
+  auto write_output = [&]() -> iterator {
     // parse the string
     if (gotAtLeastOneDigit) {
       long expPart = expIsNeg ? expPart1 - expPart2 : expPart1 + expPart2;
-      return json_num2cpp_num<Output>(intIsNeg, intPart, expPart);
+      output = json_num2cpp_num<Output>(intIsNeg, intPart, expPart);
+      return p;
     } else {
       // Might reach here if we find for example, a standalone + or - in the
       // json
       onError("Couldn't read a number", p);
     }
     assert("Code flow should never get here. onError should throw");
-    return (Output)0;
+    output = 0;
+    return p;
   };
 
   // Actual Parsing Code ////////////////////
@@ -270,7 +273,7 @@ parseNumber(iterator p, iterator pe,
     haveExponent = true;
     break;
   case END:
-    return std::make_pair(makeNumber(), p);
+    return write_output();
   default:
     assert("Should never reach here");
     onError("Unexpected token in number", p);
@@ -283,7 +286,7 @@ parseNumber(iterator p, iterator pe,
     token = readExponentPart();
     break;
   case END:
-    return std::make_pair(makeNumber(), p);
+    return write_output();
   default:
     assert("Should never get here. All error conditions should have been "
            "handled above");
@@ -292,6 +295,6 @@ parseNumber(iterator p, iterator pe,
 
   assert("Should never get here. All error conditions should have been "
          "handled above");
-  return std::make_pair(makeNumber(), p);
+  return write_output();
 }
 }
