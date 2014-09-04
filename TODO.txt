@@ -1,0 +1,45 @@
+# Things left to do
+
+# Parsing
+
+ * Number
+   + positive and negative
+   + decimals
+   + exponent
+   + negative exponent
+ * Outer and basic types (null, true, false, etc)
+ * strings
+   + standard
+   + Escaped quotes (\")
+   + Special chars (\b \n \r \t etc)
+   + Unicode
+     + UTF8
+     + wide_char_t
+ * dictionaries
+ * lists
+
+## Magic
+
+ * Handle output operator so that we can write the output in place
+ * Handle random-access vs forward iterators for calculating lengths
+ * Special allocators for:
+   + Strings
+   + Lists
+   + Dictionaries
+
+# Rendering
+
+ * bool
+ * null
+ * number
+   + positive and negative
+   + decimals
+   + exponent
+   + negative exponent
+ * string
+   + standard
+   + Escaped quotes (\")
+   + Special chars (\b \n \r \t etc)
+   + Unicode
+     + UTF8
+     + wide_char_t
