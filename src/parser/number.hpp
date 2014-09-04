@@ -141,7 +141,6 @@ parseNumber(Iterator p, Iterator pe,
       case dot:
         onError("Second '.' found in a number", p);
       case exponent:
-        ++p; // The actual 'e' is not needed when reading the exponent
         return token;
       case negative:
         onError("Didn't expect a '-' in the middle of a number", p);
