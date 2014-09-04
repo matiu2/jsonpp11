@@ -10,17 +10,23 @@ namespace json {
 
 /// Converts the components of a json number into a c++ number type
 template <typename NumberType, typename UIntType>
-inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part,
-                                   int expPart) {
+inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 
-  static_assert(std::is_arithmetic<NumberType>::value, "We can only generate number types");
+  static_assert(std::is_arithmetic<NumberType>::value,
+                "We can only generate number types");
   static_assert(std::is_signed<NumberType>::value,
                 "As JSON can generate signed numbers, we should read them as "
                 "signed numbers so as not to corrupt information silently");
 
-  static_assert(std::is_integral<UIntType>::value, "Should be an unsigned int as big as is needed to not loose data");
-  static_assert(std::is_arithmetic<UIntType>::value, "Should be an unsigned int as big as is needed to not loose data");
-  static_assert(!std::is_signed<UIntType>::value, "Should be an unsigned int as big as is needed to not loose data");
+  static_assert(
+      std::is_integral<UIntType>::value,
+      "Should be an unsigned int as big as is needed to not loose data");
+  static_assert(
+      std::is_arithmetic<UIntType>::value,
+      "Should be an unsigned int as big as is needed to not loose data");
+  static_assert(
+      !std::is_signed<UIntType>::value,
+      "Should be an unsigned int as big as is needed to not loose data");
 
   NumberType result = int_part;
   if (expPart < 0)
@@ -33,16 +39,26 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part,
 }
 
 /// Parses a JSON number
-/// @tparam Iterator an Input Iterator to chars
+/// @tparam iterator an Input Iterator to chars
 /// @tparam Output the output number type
+/// @tparam iterator_traits iterator traits for 'iterator'
 /// @param p Points to the first character of the number
 /// @param pe Points to one past the end of the JSON input
-template <typename Output, typename Iterator>
+template <typename Output, typename iterator,
+          typename iterator_traits = std::iterator_traits<iterator>>
 inline Output
-parseNumber(Iterator p, Iterator pe,
-            ErrorThrower<Iterator> onError = throwError<Iterator>) {
+parseNumber(iterator p, iterator pe,
+            ErrorThrower<iterator> onError = throwError<iterator>) {
 
-  static_assert(std::is_arithmetic<Output>::value, "We can only generate number types");
+  static_assert(is_input_iterator<iterator_traits>(),
+                "The iterator must be an input iterator");
+  static_assert(is_copy_assignable<iterator>(),
+                "The iterator must support copying by assignment");
+  static_assert(is_same<typename iterator_traits::value_type, char>(),
+                "We only work on char input");
+
+  static_assert(std::is_arithmetic<Output>::value,
+                "We can only generate number types");
   static_assert(std::is_signed<Output>::value,
                 "As JSON can generate signed numbers, we should read them as "
                 "signed numbers so as not to corrupt information silently");
@@ -80,7 +96,7 @@ parseNumber(Iterator p, Iterator pe,
 
   /// Gets the next token
 
-  auto getToken = [&]() {
+  auto getToken = [&]() -> Token {
     switch (*p) {
     case '0':
     case '1':
@@ -225,13 +241,14 @@ parseNumber(Iterator p, Iterator pe,
     return END;
   };
   /// Turns all our gathered data into useable result
-  auto makeNumber = [&]() {
+  auto makeNumber = [&]() -> Output {
     // parse the string
     if (gotAtLeastOneDigit) {
       long expPart = expIsNeg ? expPart1 - expPart2 : expPart1 + expPart2;
       return json_num2cpp_num<Output>(intIsNeg, intPart, expPart);
     } else {
-      // Might reach here if we find for example, a standalone + or - in the json
+      // Might reach here if we find for example, a standalone + or - in the
+      // json
       onError("Couldn't read a number", p);
     }
     assert("Code flow should never get here. onError should throw");
