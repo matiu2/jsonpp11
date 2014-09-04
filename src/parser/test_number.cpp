@@ -37,6 +37,13 @@ go_bandit([]() {
       AssertThat(result, Equals(999900));
     });
 
+    it("1.4 Can read decimal and exponent", [&]() {
+      const std::string json = "99.99e02";
+      auto result = parseNumber<int>(json.cbegin(), json.cend());
+      AssertThat(result, Equals(9999));
+    });
+
+
   });
 
 });
