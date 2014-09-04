@@ -3,6 +3,7 @@
 
 #include "error.hpp"
 #include "utils.hpp"
+#include "status.hpp"
 
 #include <type_traits>
 
@@ -47,9 +48,7 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 /// @param output will be filled with the value of the number we parse
 template <typename Output, typename iterator,
           typename iterator_traits = std::iterator_traits<iterator>>
-inline iterator
-parseNumber(iterator p, iterator pe, Output &output,
-            ErrorThrower<iterator> onError = throwError<iterator>) {
+inline Output parseNumber(Status<iterator, iterator_traits> &status) {
 
   static_assert(is_input_iterator<iterator_traits>(),
                 "The iterator must be an input iterator");
@@ -63,6 +62,10 @@ parseNumber(iterator p, iterator pe, Output &output,
   static_assert(std::is_signed<Output>::value,
                 "As JSON can generate signed numbers, we should read them as "
                 "signed numbers so as not to corrupt information silently");
+
+  iterator& p = status.p;
+  const iterator& pe = status.pe;
+  const auto& onError = status.onError;
 
   // Check that we have some input
   if (p == pe)
@@ -242,20 +245,18 @@ parseNumber(iterator p, iterator pe, Output &output,
     return END;
   };
   /// Turns all our gathered data into useable result
-  auto write_output = [&]() -> iterator {
+  auto make_number = [&]() -> Output {
     // parse the string
     if (gotAtLeastOneDigit) {
       long expPart = expIsNeg ? expPart1 - expPart2 : expPart1 + expPart2;
-      output = json_num2cpp_num<Output>(intIsNeg, intPart, expPart);
-      return p;
+      return json_num2cpp_num<Output>(intIsNeg, intPart, expPart);
     } else {
       // Might reach here if we find for example, a standalone + or - in the
       // json
       onError("Couldn't read a number", p);
     }
     assert("Code flow should never get here. onError should throw");
-    output = 0;
-    return p;
+    return (Output)0;
   };
 
   // Actual Parsing Code ////////////////////
@@ -273,7 +274,7 @@ parseNumber(iterator p, iterator pe, Output &output,
     haveExponent = true;
     break;
   case END:
-    return write_output();
+    return make_number();
   default:
     assert("Should never reach here");
     onError("Unexpected token in number", p);
@@ -286,7 +287,7 @@ parseNumber(iterator p, iterator pe, Output &output,
     token = readExponentPart();
     break;
   case END:
-    return write_output();
+    return make_number();
   default:
     assert("Should never get here. All error conditions should have been "
            "handled above");
@@ -295,6 +296,6 @@ parseNumber(iterator p, iterator pe, Output &output,
 
   assert("Should never get here. All error conditions should have been "
          "handled above");
-  return write_output();
+  return make_number();
 }
 }
