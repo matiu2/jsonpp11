@@ -46,25 +46,20 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 /// @param p Points to the first character of the number
 /// @param pe Points to one past the end of the JSON input
 /// @param output will be filled with the value of the number we parse
-template <typename Output, typename iterator,
-          typename iterator_traits = std::iterator_traits<iterator>>
-inline Output parseNumber(Status<iterator, iterator_traits> &status) {
+template <typename Output, typename Status>
+inline Output parseNumber(Status &status) {
 
-  static_assert(is_input_iterator<iterator_traits>(),
-                "The iterator must be an input iterator");
-  static_assert(is_copy_assignable<iterator>(),
-                "The iterator must support copying by assignment");
-  static_assert(is_same<typename iterator_traits::value_type, char>(),
-                "We only work on char input");
-
+  static_assert(is_valid_status<Status>(), "The status object must have "
+                                           "iterators p, pe, and an error "
+                                           "thrower function; onError");
   static_assert(std::is_arithmetic<Output>::value,
                 "We can only generate number types");
   static_assert(std::is_signed<Output>::value,
                 "As JSON can generate signed numbers, we should read them as "
                 "signed numbers so as not to corrupt information silently");
 
-  iterator& p = status.p;
-  const iterator& pe = status.pe;
+  auto& p = status.p;
+  const auto& pe = status.pe;
   const auto& onError = status.onError;
 
   // Check that we have some input

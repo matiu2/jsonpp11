@@ -48,6 +48,12 @@ template <typename T, typename Y> constexpr bool is_same() {
   return std::is_same<T, Y>::value;
 }
 
+/// Shortcut for std::add_const
+template <typename T>
+using add_const = typename std::add_const<T>::type;
+
+using std::declval;
+
 // Means that parameter substitution when choosing a function failed
 struct substitution_failed {};
 // A type function, that has ::value == true unless passed 'substitution_failed'
@@ -56,15 +62,15 @@ template <> struct check_substitution<substitution_failed> : std::false_type {};
 
 /// If we can compile this function, the iterator has location information
 template <typename T>
-enable_if<is_same<decltype(std::declval<T>().row), int>() &&
-          is_same<decltype(std::declval<T>().col), int>()>
+enable_if<is_same<decltype(declval<T>().row), int>() &&
+          is_same<decltype(declval<T>().col), int>()>
 location(T iter);
 
 substitution_failed location(...);
 
 template <typename T>
 struct check_location {
-  using type = decltype(location(std::declval<T>()));
+  using type = decltype(location(declval<T>()));
 };
 
 /// Shortcut type funcition to get 'check_location::type'
