@@ -19,13 +19,19 @@ go_bandit([]() {
       AssertThat(result, Equals(0));
     });
 
-    it("1.1 Can read decimal", [&]() {
+    it("1.1 Can read a number", [&]() {
+      const std::string json = "123456789";
+      int result = parseNumber<int>(json.cbegin(), json.cend());
+      AssertThat(result, Equals(123456789));
+    });
+
+    it("1.2 Can read decimal", [&]() {
       const std::string json = "1.213";
       auto result = parseNumber<double>(json.cbegin(), json.cend());
       AssertThat(result, EqualsWithDelta(1.213, 0.0001));
     });
 
-    it("1.2 Can read exponent", [&]() {
+    it("1.3 Can read exponent", [&]() {
       const std::string json = "9999e02";
       auto result = parseNumber<int>(json.cbegin(), json.cend());
       AssertThat(result, Equals(999900));
