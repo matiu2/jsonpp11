@@ -49,6 +49,13 @@ go_bandit([]() {
       AssertThat(result, EqualsWithDelta(99.99, 0.001));
     });
 
+    it("1.6 Can read a negative exponent", [&]() {
+      const std::string json = "9999E-2";
+      auto result = parseNumber<double>(json.cbegin(), json.cend());
+      AssertThat(result, EqualsWithDelta(99.99, 0.001));
+    });
+
+
 
   });
 
