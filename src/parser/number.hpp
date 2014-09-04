@@ -161,10 +161,8 @@ parseNumber(Iterator p, Iterator pe,
     switch (getToken()) {
     case negative:
       expIsNeg = true; // break; omitted here on purpose
-      ++p;
     case positive:
-      ++p;
-      break;
+      ++p; // break; omitted here on purpose
     case digit:
       break;
     default:
@@ -176,6 +174,7 @@ parseNumber(Iterator p, Iterator pe,
       switch (token = getToken()) {
       case digit:
         recordExponent();
+        break;
       case dot:
         onError("'.' found in a exponent", p);
       case exponent:
