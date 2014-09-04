@@ -43,6 +43,12 @@ go_bandit([]() {
       AssertThat(result, Equals(9999));
     });
 
+    it("1.5 Can read decimal and exponent", [&]() {
+      const std::string json = "0.9999e02";
+      auto result = parseNumber<double>(json.cbegin(), json.cend());
+      AssertThat(result, EqualsWithDelta(99.99, 0.001));
+    });
+
 
   });
 
