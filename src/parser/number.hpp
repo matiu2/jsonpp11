@@ -120,51 +120,19 @@ parseNumber(Iterator p, Iterator pe,
     intPart *= 10;
     intPart += *p - '0';
     --expPart1; // the 'actual' end exponent will be way at the end
+    ++p;
   };
 
   /// Records a single digit of the exponent part of the number
   auto recordExponent = [&]() {
     expPart2 *= 10;
     expPart2 += *p - '0';
-  };
-
-  /// Reads the entire integer part of the number
-  auto readIntegerPart = [&]() {
-    // Read the first digit
-    Token token = getToken();
-    switch (token) {
-    case digit:
-      recordInt();
-      break;
-    case negative:
-      intIsNeg = true;
-      break;
-    default:
-      onError("Expected a digit or a '-'", p);
-    };
-    // Read the rest of the integer part
-    while (p != pe) {
-      switch (token = getToken()) {
-      case digit:
-        recordInt();
-        break;
-      case dot:
-      case exponent:
-        ++p;
-        return token;
-      case negative:
-        onError("Didn't expect a '-' in the middle of a number", p);
-      case positive:
-        onError("Didn't expect a '+' in the middle of a number", p);
-      default:
-        return END;
-      };
-    }
-    return END;
+    ++p;
   };
 
   /// Reads the entire decimale part of the number
   auto readDecimalPart = [&]() {
+    ++p; // Skip over the '.'
     while (p != pe) {
       switch (Token token = getToken()) {
       case digit:
@@ -193,6 +161,7 @@ parseNumber(Iterator p, Iterator pe,
     switch (getToken()) {
     case negative:
       expIsNeg = true; // break; omitted here on purpose
+      ++p;
     case positive:
       ++p;
       break;
@@ -222,6 +191,41 @@ parseNumber(Iterator p, Iterator pe,
     return END;
   };
 
+  /// Reads the entire integer part of the number
+  auto readIntegerPart = [&]() -> Token {
+    // Read the first digit
+    Token token = getToken();
+    switch (token) {
+    case digit:
+      recordInt();
+      break;
+    case negative:
+      ++p;
+      intIsNeg = true;
+      break;
+    default:
+      onError("Expected a digit or a '-'", p);
+    };
+    // Read the rest of the integer part
+    while (p != pe) {
+      switch (token = getToken()) {
+      case digit:
+        recordInt();
+        break;
+      case dot:
+        return readDecimalPart();
+      case exponent:
+        return readExponentPart();
+      case negative:
+        onError("Didn't expect a '-' in the middle of a number", p);
+      case positive:
+        onError("Didn't expect a '+' in the middle of a number", p);
+      default:
+        return END;
+      };
+    }
+    return END;
+  };
   /// Turns all our gathered data into useable result
   auto makeNumber = [&]() {
     // parse the string
@@ -233,7 +237,7 @@ parseNumber(Iterator p, Iterator pe,
       onError("Couldn't read a number", p);
     }
     assert("Code flow should never get here. onError should throw");
-    return 0;
+    return (Output)0;
   };
 
   // Actual Parsing Code ////////////////////
@@ -259,9 +263,8 @@ parseNumber(Iterator p, Iterator pe,
 
   switch (token) {
   case exponent:
-    if (haveExponent) {
+    if (haveExponent)
       onError("found two exponents in a json number", p);
-    }
     token = readExponentPart();
     break;
   case END:
