@@ -46,7 +46,7 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 /// @param pe Points to one past the end of the JSON input
 template <typename Output, typename iterator,
           typename iterator_traits = std::iterator_traits<iterator>>
-inline Output
+inline std::pair<Output, iterator>
 parseNumber(iterator p, iterator pe,
             ErrorThrower<iterator> onError = throwError<iterator>) {
 
@@ -270,7 +270,7 @@ parseNumber(iterator p, iterator pe,
     haveExponent = true;
     break;
   case END:
-    return makeNumber();
+    return std::make_pair(makeNumber(), p);
   default:
     assert("Should never reach here");
     onError("Unexpected token in number", p);
@@ -283,7 +283,7 @@ parseNumber(iterator p, iterator pe,
     token = readExponentPart();
     break;
   case END:
-    return makeNumber();
+    return std::make_pair(makeNumber(), p);
   default:
     assert("Should never get here. All error conditions should have been "
            "handled above");
@@ -292,6 +292,6 @@ parseNumber(iterator p, iterator pe,
 
   assert("Should never get here. All error conditions should have been "
          "handled above");
-  return makeNumber();
+  return std::make_pair(makeNumber(), p);
 }
 }
