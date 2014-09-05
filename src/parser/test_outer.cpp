@@ -156,11 +156,17 @@ go_bandit([]() {
       AssertThat(*status.p, Equals('-'));
     });
 
-
-    it("11: Can read string", [&]() { 
-      AssertThat(false, Equals(true));
+    it("11: Can find a string", [&]() { 
+      std::string json{R"( "hello" )"};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(string));
+      // It should put us one past the '"'
+      AssertThat(status.p, Equals(json.cbegin() + 2));
+      AssertThat(*status.p, Equals('h'));
     });
-    it("12: Can read ERROR", [&]() { 
+
+    it("12: Can find an ERROR", [&]() { 
       AssertThat(false, Equals(true));
     });
   });
