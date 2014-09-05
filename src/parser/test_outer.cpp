@@ -167,7 +167,13 @@ go_bandit([]() {
     });
 
     it("12: Can find an ERROR", [&]() { 
-      AssertThat(false, Equals(true));
+      std::string json{R"( hello )"};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(ERROR));
+      // It should put us at the 'h'
+      AssertThat(status.p, Equals(json.cbegin() + 1));
+      AssertThat(*status.p, Equals('h'));
     });
   });
 });
