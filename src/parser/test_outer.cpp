@@ -21,28 +21,30 @@ go_bandit([]() {
       AssertThat(result, Equals(HIT_END));
     });
 
-    it("2: Can read COMMA", [&]() {});
-
-    it("3: Can read COLON", [&]() {
-
+    it("2: Can read COMMA", [&]() {
+      std::string json{"   ,xxx   "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(COMMA));
     });
 
+    it("3: Can read COLON", [&]() { assert(false); });
     it("4: Can read null", [&]() {
-
+      assert(false);
     });
     it("5: Can read boolean", [&]() {
-
+      assert(false);
     });
     it("6: Can read array", [&]() {
-
+      assert(false);
     });
-    it("7: Can read ARRAY_END", [&]() {});
-    it("8: Can read object", [&]() {});
+    it("7: Can read ARRAY_END", [&]() { assert(false); });
+    it("8: Can read object", [&]() { assert(false); });
 
-    it("9: Can read OBJECT_END", [&]() {});
-    it("10: Can read number", [&]() {});
-    it("11: Can read string", [&]() {});
-    it("12: Can read ERROR", [&]() {});
+    it("9: Can read OBJECT_END", [&]() { assert(false); });
+    it("10: Can read number", [&]() { assert(false); });
+    it("11: Can read string", [&]() { assert(false); });
+    it("12: Can read ERROR", [&]() { assert(false); });
   });
 });
 
