@@ -146,6 +146,17 @@ go_bandit([]() {
       AssertThat(*status.p, Equals('1'));
     });
 
+    it("10.1: Can find a negative number", [&]() { 
+      std::string json{" -9 "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(number));
+      // It should put us at the '-'
+      AssertThat(status.p, Equals(json.cbegin() + 1));
+      AssertThat(*status.p, Equals('-'));
+    });
+
+
     it("11: Can read string", [&]() { 
       AssertThat(false, Equals(true));
     });
