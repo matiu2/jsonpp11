@@ -1,7 +1,7 @@
 /// Tests the outer parser
 
 #include <bandit/bandit.h>
-#include <sstream>
+#include <iostream>
 
 #include "outer.hpp"
 
@@ -19,15 +19,16 @@ go_bandit([]() {
       Status status(json.cbegin(), json.cend());
       Token result = getNextOuterToken(status);
       AssertThat(result, Equals(HIT_END));
+      AssertThat(status.p, Equals(status.pe));
     });
 
     it("2: Can read COMMA", [&]() {
       std::string json{"   ,xxx   "};
       Status status(json.cbegin(), json.cend());
       Token result = getNextOuterToken(status);
-      
       AssertThat(result, Equals(COMMA));
-
+      AssertThat(status.p, Equals(json.cbegin() + 4));
+      AssertThat(*status.p, Equals('x'));
     });
 
     it("3: Can read COLON", [&]() { 
@@ -35,6 +36,8 @@ go_bandit([]() {
       Status status(json.cbegin(), json.cend());
       Token result = getNextOuterToken(status);
       AssertThat(result, Equals(COLON));
+      AssertThat(status.p, Equals(json.cbegin() + 4));
+      AssertThat(*status.p, Equals(' '));
     });
 
     it("4: Can read null", [&]() {
@@ -42,11 +45,41 @@ go_bandit([]() {
       Status status(json.cbegin(), json.cend());
       Token result = getNextOuterToken(status);
       AssertThat(result, Equals(null));
+      AssertThat(status.p,
+                 Equals(json.cbegin() + 4)); // It should skip over the 'n'
+      // Now read it
+      readNull(status);
+      AssertThat(status.p,
+                 Equals(json.cbegin() +
+                        7)); // It should skip over the whole word 'null'
+      AssertThat(*status.p, Equals(' '));
     });
 
     it("5: Can read boolean", [&]() {
-      AssertThat(false, Equals(true));
+      std::string json{"   true   "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(boolean));
+      AssertThat(status.p,
+                 Equals(json.cbegin() + 3)); // It should not skip over the 't'
     });
+
+    it("5.1: Can read true", [&]() {
+      std::string json{"   true   "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(boolean));
+      AssertThat(status.p,
+                 Equals(json.cbegin() + 3)); // It should not skip over the 't'
+      // Now read it
+      bool value = readBoolean(status);
+      AssertThat(value, Equals(true));
+      AssertThat(status.p,
+                 Equals(json.cbegin() +
+                        7)); // It should skip over the whole word 'true'
+      AssertThat(*status.p, Equals(' '));
+    });
+
     it("6: Can read array", [&]() {
       AssertThat(false, Equals(true));
     });

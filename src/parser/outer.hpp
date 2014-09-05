@@ -130,7 +130,7 @@ checkStaticString(Status& status, const char *expected) {
   while (*expected)
     if ((*expected++) != (*status.p++))
       status.onError(std::string("Static String '") + expected +
-                     "' doesn't match");
+                     "' doesn't match", status.p);
 }
 
 // Reader functions for basic types ////////////////////
@@ -166,7 +166,9 @@ template <typename Status> inline bool readBoolean(Status &status) {
     checkStaticString(status, "alse");
     return false;
   default:
-    status.onError("Expected 'true' or 'false'");
+    status.onError("Expected 'true' or 'false'", status.p);
   }
+  assert("Code flow should never reach here, as onError should throw");
+  return false;
 }
 }
