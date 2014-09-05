@@ -38,8 +38,12 @@ go_bandit([]() {
     });
 
     it("4: Can read null", [&]() {
-      AssertThat(false, Equals(true));
+      std::string json{"   null   "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(null));
     });
+
     it("5: Can read boolean", [&]() {
       AssertThat(false, Equals(true));
     });
