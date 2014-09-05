@@ -127,8 +127,15 @@ go_bandit([]() {
     });
 
     it("9: Can read OBJECT_END", [&]() { 
-      AssertThat(false, Equals(true));
+      std::string json{" }x "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(OBJECT_END));
+      // It should put us one past the ']'
+      AssertThat(status.p, Equals(json.cbegin() + 2));
+      AssertThat(*status.p, Equals('x'));
     });
+
     it("10: Can read number", [&]() { 
       AssertThat(false, Equals(true));
     });
