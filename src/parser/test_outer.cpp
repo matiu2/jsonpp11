@@ -80,6 +80,22 @@ go_bandit([]() {
       AssertThat(*status.p, Equals(' '));
     });
 
+    it("5.2: Can read false", [&]() {
+      std::string json{"   false   "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(boolean));
+      AssertThat(status.p,
+                 Equals(json.cbegin() + 3)); // It should not skip over the 'f'
+      // Now read it
+      bool value = readBoolean(status);
+      AssertThat(value, Equals(false));
+      AssertThat(status.p,
+                 Equals(json.cbegin() +
+                        8)); // It should skip over the whole word 'false'
+      AssertThat(*status.p, Equals(' '));
+    });
+
     it("6: Can read array", [&]() {
       AssertThat(false, Equals(true));
     });
