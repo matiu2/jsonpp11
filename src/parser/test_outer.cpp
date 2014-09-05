@@ -136,9 +136,16 @@ go_bandit([]() {
       AssertThat(*status.p, Equals('x'));
     });
 
-    it("10: Can read number", [&]() { 
-      AssertThat(false, Equals(true));
+    it("10: Can find a number", [&]() { 
+      std::string json{" 123 "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(number));
+      // It should put us at the '1'
+      AssertThat(status.p, Equals(json.cbegin() + 1));
+      AssertThat(*status.p, Equals('1'));
     });
+
     it("11: Can read string", [&]() { 
       AssertThat(false, Equals(true));
     });
