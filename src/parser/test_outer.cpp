@@ -105,8 +105,15 @@ go_bandit([]() {
       AssertThat(status.p, Equals(json.cbegin() + 2));
       AssertThat(*status.p, Equals('b'));
     });
+
     it("7: Can read ARRAY_END", [&]() { 
-      AssertThat(false, Equals(true));
+      std::string json{" ]x "};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(ARRAY_END));
+      // It should put us one past the ']'
+      AssertThat(status.p, Equals(json.cbegin() + 2));
+      AssertThat(*status.p, Equals('x'));
     });
     it("8: Can read object", [&]() { 
       AssertThat(false, Equals(true));
