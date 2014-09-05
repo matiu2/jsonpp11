@@ -115,8 +115,15 @@ go_bandit([]() {
       AssertThat(status.p, Equals(json.cbegin() + 2));
       AssertThat(*status.p, Equals('x'));
     });
-    it("8: Can read object", [&]() { 
-      AssertThat(false, Equals(true));
+
+    it("8: Can read object start", [&]() { 
+      std::string json{R"( {"blah": blah })"};
+      Status status(json.cbegin(), json.cend());
+      Token result = getNextOuterToken(status);
+      AssertThat(result, Equals(object));
+      // It should put us one past the '{'
+      AssertThat(status.p, Equals(json.cbegin() + 2));
+      AssertThat(*status.p, Equals('"'));
     });
 
     it("9: Can read OBJECT_END", [&]() { 
