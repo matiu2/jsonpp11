@@ -41,7 +41,7 @@ inline Iterator utf8encode(wchar_t u, Iterator p) {
       getNumBytes(u); // number of bytes needed for utf-8 encoding
   char stack[4]; // Maximum of 4 bytes for any utf8 encoding
   assert(numBytes <= 4);
-  char *out = stack;
+  char *out = stack; // We need to reverse the output order
   if (numBytes == 1) {
     *(out++) = static_cast<char>(u);
   } else {
@@ -64,7 +64,7 @@ inline Iterator utf8encode(wchar_t u, Iterator p) {
   }
   // Unravel the stack
   while (out != stack)
-    *(p++) = *(out--);
+    *(p++) = *(--out);
   return p;
 }
 }

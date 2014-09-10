@@ -86,8 +86,8 @@ go_bandit([]() {
     it("1.6. Can detect a bad unicode char", [&]() {
       std::string input = R"(\u03E01111111111111")";
       std::string expected = u8"\u03E0";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
-      AssertThat(output, Equals(expected));
+      AssertThrows(ParserError,
+                   json::decodeStringInPlace(input.begin(), input.end()));
     });
 
   });
