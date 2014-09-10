@@ -170,7 +170,7 @@ go_bandit([]() {
       std::string json{R"( hello )"};
       Status status(json.cbegin(), json.cend());
       Token result = getNextOuterToken(status);
-      AssertThat(result, Equals(ERROR));
+      AssertThat(result, Equals(string));
       // It should put us at the 'h'
       AssertThat(status.p, Equals(json.cbegin() + 1));
       AssertThat(*status.p, Equals('h'));
