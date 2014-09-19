@@ -21,8 +21,18 @@ inline void from8(In , Out ) {
   static_assert(is_input_iterator<In>(), "We read in UTF-8 and output UTF-32");
   static_assert(is_output_iterator<Out>(), "We read in UTF-8 and output UTF-32");
   static_assert(sizeof(typename InTraits::value_type) == 1, "Expected the input to be 8 bits at a time");
-  static_assert(is_assignable<remove_pointer<Out>, char32_t>(),
-                "out should be an output iterator that lets us write char32_t");
+
+  /*
+     UCS-4 range (hex.)           UTF-8 octet sequence (binary)
+     0000 0000-0000 007F   0xxxxxxx
+     0000 0080-0000 07FF   110xxxxx 10xxxxxx
+     0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
+
+     0001 0000-001F FFFF   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     0020 0000-03FF FFFF   111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+     0400 0000-7FFF FFFF   1111110x 10xxxxxx ... 10xxxxxx
+  */
+
 }
 
 /**
