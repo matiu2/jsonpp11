@@ -97,6 +97,14 @@ go_bandit([]() {
                    json::decodeStringInPlace(status));
     });
 
+    it("1.8. Can parse a 32 bit unicode char", [&]() {
+      std::string input = R"(\uD834\uDD1E")";
+      std::string expected = u8"\U0001D11E";
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
+      AssertThat(output, Equals(expected));
+    });
+
   });
 });
 

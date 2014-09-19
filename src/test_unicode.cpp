@@ -12,10 +12,10 @@ go_bandit([]() {
 
   describe("utf-16 Reader", [&]() {
 
-    it("1.0 Can read an empty string", [&]() {
-      std::u16string input = u"";
+    it("1.0 Can read a simple unicode char", [&]() {
+      std::u16string input = u"\u0466";
       std::u32string output = U"";
-      std::u32string expected = U"";
+      std::u32string expected = U"\u0466";
       from16(input.cbegin(), std::back_inserter(output));
       AssertThat(output, Equals(expected));
     });
