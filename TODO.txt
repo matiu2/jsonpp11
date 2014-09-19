@@ -2,19 +2,46 @@
 
 # Parsing
 
- * Number
-   + positive and negative
-   + decimals
-   + exponent
-   + negative exponent
- * Outer and basic types (null, true, false, etc)
+## Determine Unicode encoding for whole stream:
+
+According to the RFC: http://www.ietf.org/rfc/rfc4627.txt
+
+   3.  Encoding
+
+   JSON text SHALL be encoded in Unicode.  The default encoding is
+   UTF-8.
+
+   Since the first two characters of a JSON text will always be ASCII
+   characters [RFC0020], it is possible to determine whether an octet
+   stream is UTF-8, UTF-16 (BE or LE), or UTF-32 (BE or LE) by looking
+   at the pattern of nulls in the first four octets.
+
+           00 00 00 xx  UTF-32BE
+           00 xx 00 xx  UTF-16BE
+           xx 00 00 00  UTF-32LE
+           xx 00 xx 00  UTF-16LE
+           xx xx xx xx  UTF-8
+
+ * Determine stream encoding (as above)
+ * Have all code handle unicode input
+ * Use composite iterator wrappers (using tuple to put them together, so when '++' is called, you'd have a tuple of funcs and call them all in order).
+
+## General Parsing
+
+ * Number - DONE
+   + positive and negative - DONE
+   + decimals - DONE
+   + exponent - DONE
+   + negative exponent - DONE
+ * Outer and basic types (null, true, false, etc) - DONE
  * strings
-   + standard
-   + Escaped quotes (\")
-   + Special chars (\b \n \r \t etc)
+   + standard - DONE
+   + Escaped quotes (\") - NEEDS TESTING
+   + Special chars (\b \n \r \t etc) - NEEDS TESTING
    + Unicode
-     + UTF8
-     + wide_char_t
+     + \u0000-\uFFFF - DONE
+     + \U10000-\U1F8FF
+       - trickier as it encodes into UTF-16
  * dictionaries
  * lists
 

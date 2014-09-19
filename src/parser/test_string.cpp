@@ -3,6 +3,7 @@
 #include <string>
 #include <iterator>
 
+#include "status.hpp"
 #include "string.hpp"
 
 using namespace bandit;
@@ -42,14 +43,16 @@ go_bandit([]() {
 
     it("1.1. Can be empty", [&]() {
       std::string input = R"(")";
-      json::string_reference<std::string::iterator> output = json::decodeStringInPlace(input.begin(), input.end());
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(output.begin(), Equals(output.end()));
     });
 
     it("1.2. Can be a single char", [&]() {
       std::string input = R"(x")";
       std::string expected = "x";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(expected, Is().EqualTo(output)); // Needs to be this way around to use the correct snowhouse template
     });
 
@@ -57,7 +60,8 @@ go_bandit([]() {
       std::string input = R"(abcdefg")";
       std::string expected = "abcdefg";
       std::string expected2 = "(1241142";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(output, Equals(expected));
       AssertThat(output, Is().Not().EqualTo(expected2));
     });
@@ -65,21 +69,24 @@ go_bandit([]() {
     it("1.4. Can parse all escape characters", [&]() {
       std::string input = R"(\b\f\n\r\t")";
       std::string expected = "\b\f\n\r\t";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(output, Equals(expected));
     });
 
     it("1.5. Can parse unicode char", [&]() {
       std::string input = R"(\u03E0")";
       std::string expected = u8"\u03E0";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(output, Equals(expected));
     });
 
     it("1.6. Can parse the largest unicode char", [&]() {
-      std::string input = R"(\uffff")";
-      std::string expected = u8"\uffff";
-      auto output = json::decodeStringInPlace(input.begin(), input.end());
+      std::string input = R"(\u1F8FF")";
+      std::string expected = u8"\U0001f8ff";
+      auto status = make_status(input.begin(), input.end());
+      auto output = json::decodeStringInPlace(status);
       AssertThat(output, Equals(expected));
     });
 
@@ -87,7 +94,8 @@ go_bandit([]() {
       std::string input = R"(\u03E01111111111111")";
       std::string expected = u8"\u03E0";
       AssertThrows(ParserError,
-                   json::decodeStringInPlace(input.begin(), input.end()));
+      auto status = make_status(input.begin(), input.end());
+                   json::decodeStringInPlace(status));
     });
 
   });

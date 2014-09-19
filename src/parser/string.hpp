@@ -1,8 +1,10 @@
 #pragma once
 
 #include "error.hpp"
-#include "utils.hpp"
+#include "../utils.hpp"
+#include "../unicode.hpp"
 #include "utf8_writer.hpp"
+#include "status.hpp"
 
 namespace json {
 
@@ -24,48 +26,68 @@ inline Iterator findEndOfUnchangedCharBlock(Iterator p, Iterator pe) {
 
 /// Most basic string parser. Calls back functions for each token/block that it
 /// finds.
-template <typename Iterator>
-inline void
-parseString(Iterator p, Iterator pe,
-            std::function<void(Iterator, Iterator)>
-                recordUnchangedChars, /// Takes the begin and end iterators
-                                      /// of a block of unchanged chars
-            std::function<void(char)> recordChar,
-            std::function<void(wchar_t)> recordUnicode,
-            ErrorThrower<Iterator> onError = throwError<Iterator>) {
+template <typename Status>
+inline void parseString(
+    Status &status,
+    std::function<void(typename Status::iterator, typename Status::iterator)>
+        recordUnchangedChars, /// Takes the begin and end iterators
+                              /// of a block of unchanged chars
+    std::function<void(typename Status::iterator_traits::value_type)>
+        recordChar, std::function<void(char32_t)> recordUnicode) {
+
+  using Char = typename Status::iterator_traits::value_type;
+  auto& p = status.p;
+  const auto& pe = status.pe;
+
   /// Handle the 4 digits of a unicode char
-  auto readUnicode = [&]() {
-    wchar_t u = 0;
+  std::function<char32_t()> readUnicode = [&]() -> char32_t {
+    char16_t u[2] = {0,0};
     int uniCharNibbles = 0;
     while (p != pe) {
-      if (uniCharNibbles == sizeof(wchar_t)*2) {
+      if (uniCharNibbles == 8) {
         std::stringstream msg;
-        msg << "Max unicode char is " << sizeof(wchar_t) << "  bytes";
-        onError(msg.str(), p);
+        msg << "Max unicode data permitted in JSON is 4 bytes";
+        status.onError(msg.str(), p);
       }
-      char ch = *p;
+      Char ch = *p;
       if ((ch >= '0') && (ch <= '9')) {
-        u <<= 4;
-        u += ch - '0';
+        *u <<= 4;
+        *u += ch - '0';
       } else if ((ch >= 'a') && (ch <= 'f')) {
-        u <<= 4;
-        u += ch - 'a' + 0x0A;
+        *u <<= 4;
+        *u += ch - 'a' + 0x0A;
       } else if ((ch >= 'A') && (ch <= 'F')) {
-        u <<= 4;
-        u += ch - 'A' + 0x0A;
+        *u <<= 4;
+        *u += ch - 'A' + 0x0A;
       } else
         break;
       ++p;
       ++uniCharNibbles;
     }
-    // We didn't get any unicode digits
-    if (uniCharNibbles == 0) {
-      onError("\\u with no hex after it", p);
-    } else {
-      return u;
+    // See how many hex characters we got
+    switch (uniCharNibbles) {
+    case 0:
+      status.onError("\\u with no hex after it", p);
+    case 1:
+    case 2:
+      status.onError("\\u needs at least 3 hex chars after it", p);
+    case 3: {
+      // This is a UTF-16 encoded number - We need to get the next pair
+      checkStaticString(status, "\\u");
+      char32_t secondByte = readUnicode();
+      assert(secondByte <
+             std::numeric_limits<
+                 char16_t>::max()); // The second byte should fit in a u16
+      u[1] = static_cast<char16_t>(secondByte);
+      char32_t out;
+      from16(u, &out);
+      return out;
+    }
+    case 4:
+      return *u;
     }
     assert("Code should never reach here, onError should throw above");
-    return u;
+    return *u;
   };
   /// Handle the escaped character after the backslash
   /// @return true if we handled it; false if it turned out to be just an normal
@@ -102,8 +124,8 @@ parseString(Iterator p, Iterator pe,
     return true;
   };
 
-  // Main outter string parsing loop
-  Iterator unchangedCharsStart = p;
+  // Main outer string parsing loop
+  auto unchangedCharsStart = p;
   while (p != pe) {
     switch (*p) {
     case '"':
@@ -169,17 +191,19 @@ template <typename Iterator> struct string_reference {
  * It ignore's the final quote (meaning end of string) and returns 15. Just
  *counting each char once
  *
- * @tparam Iterator input iterator type
- * @tparam Traits iterator_traits
- * @param p Start of JSON input, just after the first '"'
- * @param pe One past the end of the JSON input
+ * @tparam Status Some kind of parser.hpp Status template instantiation
+ * @param Status A reference to a valid parser status instance
  *
  * @returns the length of the raw JSON string
  */
-template <typename Iterator, typename Traits = iterator_traits<Iterator>>
-inline size_t getRawStringLength(Iterator p, Iterator pe) {
-  static_assert(is_input_iterator<Traits>(),
-                "We need to be able to read from the input");
+template <typename Status>
+inline size_t getRawStringLength(Status& status) {
+  static_assert(is_valid_status<Status>(),
+                "Status should derive from json::Status");
+
+  auto& p = status.p;
+  const auto& pe = status.pe;
+
   size_t result = 0;
   while (p != pe) {
     switch (*p) {
@@ -204,17 +228,19 @@ inline size_t getRawStringLength(Iterator p, Iterator pe) {
  * unneccesary data copying) than actually encoding it, and could be useful for
  * deciding how much memory to allocate before decoding a string on the fly.
  *
- * @tparam Iterator input iterator type
- * @tparam Traits iterator_traits
- * @param p Start of JSON input, just after the first '"'
- * @param pe One past the end of the JSON input
+ * @tparam Status Some kind of parser.hpp Status template instantiation
+ * @param Status A reference to a valid parser status instance
  *
  * @returns The number of bytes needed to encode this json string
  */
-template <typename Iterator, typename Traits = iterator_traits<Iterator>>
-inline size_t getDecodedStringLength(Iterator p, Iterator pe) {
-  static_assert(is_input_iterator<Traits>(),
-                "We need to be able to read from the input");
+template <typename Status>
+inline size_t getDecodedStringLength(Status& status) {
+
+  using Iterator = typename Status::iterator;
+
+  auto& p = status.p;
+  const auto& pe = status.pe;
+
   size_t result = 0;
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
     if (is_random_access_iterator<Iterator>)
@@ -223,9 +249,9 @@ inline size_t getDecodedStringLength(Iterator p, Iterator pe) {
       while (ucBegin != ucEnd)
         ++result;
   };
-  auto recordChar = [&](char c) { ++result; };
-  auto recordUnicode = [&](wchar_t u) { result += getNumBytes(u); };
-  parseString<Iterator>(p, pe, recordUnchangedChars, recordChar, recordUnicode);
+  auto recordChar = [&](char) { ++result; };
+  auto recordUnicode = [&](char32_t u) { result += getNumBytes(u); };
+  parseString(p, pe, recordUnchangedChars, recordChar, recordUnicode);
   return result;
 }
 
@@ -237,19 +263,23 @@ inline size_t getDecodedStringLength(Iterator p, Iterator pe) {
  * of the data and the new end (of the encoded string). We can do this because
  * the decoded string length is always <= the JSON string length.
  *
- * @tparam Iterator input iterator type
- * @tparam Traits iterator_traits
- * @param p Start of JSON input, just after the first '"'
- * @param pe One past the end of the JSON input
+ * @tparam Status Some kind of parser.hpp Status template instantiation
+ * @param Status A reference to a valid parser status instance
  *
  * @returns a pair of iterators to the beginning and end of the decoded string
  */
-template <typename Iterator, typename Traits = iterator_traits<Iterator>>
-inline string_reference<Iterator> decodeStringInPlace(Iterator p, Iterator pe) {
-  static_assert(is_input_iterator<Traits>(),
-                "We need to be able to read from the input");
-  static_assert(is_copy_assignable<remove_pointer<Iterator>>(),
+template <typename Status>
+inline string_reference<typename Status::iterator>
+decodeStringInPlace(Status &status) {
+
+  static_assert(is_copy_assignable<remove_pointer<typename Status::iterator>>(),
                 "We need to be able to write to the input too");
+
+  using Iterator = typename Status::iterator;
+  using Char = typename Status::iterator_traits::value_type;
+
+  auto& p = status.p;
+
   Iterator begin = p, end = p;
   bool hadChangedChars = false;
   // Just increments the output string's length
@@ -272,10 +302,10 @@ inline string_reference<Iterator> decodeStringInPlace(Iterator p, Iterator pe) {
     }
   };
   // Just advance the end pointer
-  auto recordChar = [&](char c) { *(end++) = c; };
+  auto recordChar = [&](Char c) { *(end++) = c; };
   // UTF-8 encode a unicode char
-  auto recordUnicode = [&](wchar_t u) { end = utf8encode(u, end); };
-  parseString<Iterator>(p, pe, recordUnchangedChars, recordChar, recordUnicode);
+  auto recordUnicode = [&](char32_t u) { end = utf8encode(u, end); };
+  parseString(status, recordUnchangedChars, recordChar, recordUnicode);
   return {begin, end};
 }
 
@@ -288,8 +318,8 @@ inline string_reference<Iterator> decodeStringInPlace(Iterator p, Iterator pe) {
  * back_inserter and re-allocating memory as needed can slow things down quite a
  * lot.
  *
- * @tparam Iterator input iterator type
- * @tparam Traits iterator_traits
+ * @tparam Status Some kind of parser.hpp Status template instantiation
+ * @param Status A reference to a valid parser status instance
  * @tparam OutputIterator output iterator type
  * @tparam OutputTraits iterator_traits
  * @param p Start of JSON input, just after the first '"'
@@ -298,16 +328,13 @@ inline string_reference<Iterator> decodeStringInPlace(Iterator p, Iterator pe) {
  *
  * @returns the number of bytes copied
  */
-template <typename Iterator, typename OutputIterator,
-          typename Traits = iterator_traits<Iterator>,
+template <typename Status, typename OutputIterator,
           typename OutputTraits = iterator_traits<OutputIterator>>
-size_t copyRawString(Iterator p, Iterator pe, OutputIterator out) {
-  static_assert(is_input_iterator<Traits>(),
-                "We need to be able to read from the input");
+size_t copyRawString(Status& status, OutputIterator out) {
   static_assert(is_output_iterator<OutputTraits>(),
                 "We need to be able to write to the output");
-  size_t result = getRawStringLength(p, pe); // end is written to
-  std::copy_n(p, result, out);
+  size_t result = getRawStringLength(status.p, status.pe); // end is written to
+  std::copy_n(status.p, result, out);
   return result;
 }
 
@@ -318,31 +345,32 @@ size_t copyRawString(Iterator p, Iterator pe, OutputIterator out) {
  * allocate the memory needed in one go, as allocating on the fly can cause
  * unnecessary memory copying.
  *
- * @tparam Iterator input iterator type
- * @tparam Traits iterator_traits
+ * @tparam Status Some kind of parser.hpp Status template instantiation
+ * @param Status A reference to a valid parser status instance
  * @tparam OutputIterator output iterator type
  * @tparam OutputTraits iterator_traits
  * @param p Start of JSON input, just after the first '"'
  * @param pe One past the end of the JSON input
  * @param out the output iterator, usually a back_inserter to a std::string
 */
-template <typename Iterator, typename OutputIterator,
-          typename Traits = iterator_traits<Iterator>,
+template <typename Status, typename OutputIterator,
           typename OutputTraits = iterator_traits<OutputIterator>>
-inline void decodeString(Iterator p, Iterator pe, OutputIterator out) {
-  static_assert(is_input_iterator<Traits>(),
-                "We need to be able to read from the input");
+inline void decodeString(Status& status, OutputIterator out) {
+
   static_assert(is_output_iterator<OutputTraits>(),
                 "We need to be able to write to the output iterator");
-  bool hadChangedChars = false;
+
+  using Iterator = typename Status::iterator;
+  using value_type = typename Status::iterator_traits::value_type;
+
   // Just increments the output string's length
   auto recordUnchangedChars =
       [&](Iterator ucBegin, Iterator ucEnd) { std::copy(ucBegin, ucEnd, out); };
   // Just advance the end pointer
-  auto recordChar = [&](char c) { *(out++) = c; };
+  auto recordChar = [&](value_type c) { *(out++) = c; };
   // UTF-8 encode a unicode char
-  auto recordUnicode = [&](wchar_t u) { out = utf8encode(u, out); };
-  parseString<Iterator>(p, pe, recordUnchangedChars, recordChar, recordUnicode);
+  auto recordUnicode = [&](char32_t u) { out = utf8encode(u, out); };
+  parseString(status, status, recordUnchangedChars, recordChar, recordUnicode);
 }
 
 }

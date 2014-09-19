@@ -109,30 +109,6 @@ getNextOuterToken(Status& status) {
   return HIT_END;
 }
 
-// Utility Functions ////////////////////
-
-/**
- * Compare's what we're seeing in the JSON to a zero terminated static string
- *
- * @tparam iterator an Input Iterator to chars
- * @tparam iterator_traits iterator traits for 'iterator'
- * @param p Points to the first character of the JSON input
- * @param pe Points to one past the end of the JSON input
- * @param onError A function to call when we encounter an error
- * @param returns the new iterator position
- */
-template <typename Status>
-inline void
-checkStaticString(Status& status, const char *expected) {
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
-  while (*expected)
-    if ((*expected++) != (*status.p++))
-      status.onError(std::string("Static String '") + expected +
-                     "' doesn't match", status.p);
-}
-
 // Reader functions for basic types ////////////////////
 
 /**

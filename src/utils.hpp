@@ -28,6 +28,23 @@ template <typename T, typename Y> constexpr bool is_base_of() {
   return std::is_base_of<T, Y>::value;
 }
 
+// Shortcut for std::is_lvalue_reference
+template <typename T> constexpr bool is_lvalue_reference() {
+  return std::is_lvalue_reference<T>::value;
+}
+
+// Shortcut for std::is_assignable
+template <typename T, typename A> constexpr bool is_assignable() {
+  return std::is_assignable<T, A>::value;
+}
+
+// Shortcut for std::is_integral
+template <typename T> constexpr bool is_integral() {
+  return std::is_integral<T>::value;
+}
+
+
+
 // Shortcut for std::is_copy_assignable
 template <typename T> constexpr bool is_copy_assignable() {
   return std::is_copy_assignable<T>::value;
@@ -114,5 +131,20 @@ bool equal(Iterator1 first_begin, Iterator1 first_end, Iterator2 second_begin,
       return false;
   return (first_begin == first_end) && (second_begin == second_end);
 }
+
+/// A compliler error (incomplete type). Useful for printing type of T. To use:
+/// PRINT_TYPE<some_unknown_type> x;
+template <typename T>
+struct PRINT_TYPE; // If you try to use me
+
+/// Shows a number at compile time (in an error message);
+/// To use: SHOW_NUMBER<some_unknown_number> x;
+template <int n>
+struct SHOW_NUMBER;
+
+template <typename T>
+struct show_size_of {
+  SHOW_NUMBER<sizeof(T)> x;
+};
 
 }

@@ -1,14 +1,14 @@
 #pragma once
-/// Funtions to convert wchar_t to a utf8 encoded character sequence
+/// Funtions to convert wide characters to a utf8 encoded character sequence
 
 namespace json {
 
 /**
  * Returns the number of bytes needed to encode a unicode character in utf8
  */
-inline int getNumBytes(wchar_t c) {
+inline int getNumBytes(long long c) {
   int result = 1;
-  wchar_t checker = 0x7f;
+  long long checker = 0x7f;
   if (c <= checker)
     return result;
   checker <<= 4;
@@ -26,7 +26,7 @@ inline int getNumBytes(wchar_t c) {
 
 /// After collecting all the unicode integers, we generate the final output char
 template <typename Iterator>
-inline Iterator utf8encode(wchar_t u, Iterator p) {
+inline Iterator utf8encode(long long u, Iterator p) {
   /*
      UCS-4 range (hex.)           UTF-8 octet sequence (binary)
      0000 0000-0000 007F   0xxxxxxx
