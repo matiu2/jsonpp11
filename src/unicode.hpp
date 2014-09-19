@@ -46,8 +46,8 @@ inline void from16(In in, Out out) {
   } else {
     char16_t top = *(in++);
     char16_t bottom = *in;
-    top -= 0xDC00;
-    bottom -= 0xD800;
+    top -= 0xD800;
+    bottom -= 0xDC00;
     char32_t result = top << 10;
     result |= bottom;
     result += 0x010000;
@@ -99,11 +99,11 @@ inline void to16(In in, Out out) {
   if ((*in <= 0xD7FF) || (*in >= 0xE000)) {
     *(out++) << static_cast<char16_t>(*in);
   } else {
-    char32_t chr = *in - 0x010000;
-    char16_t top = (chr >> 10);      // Top 10 bits
-    char16_t bottom = (chr & 0x3ff); // Bottom 10 bits
-    top += 0xDC00;
-    bottom += 0xD800;
+    char32_t chr = *in - 0x10000;
+    char16_t top = chr >> 10;      // Top 10 bits
+    char16_t bottom = chr & 0x3ff; // Bottom 10 bits
+    top += 0xD800;
+    bottom += 0xDC00;
     // Output
     *(out++) << top;
     *(out++) << bottom;

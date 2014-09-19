@@ -82,19 +82,18 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
-    it("1.6. Can parse the largest unicode char", [&]() {
-      std::string input = R"(\u1F8FF")";
-      std::string expected = u8"\U0001f8ff";
+    it("1.6. Can parse the largest 16 bit unicode char", [&]() {
+      std::string input = R"(\uFFFF")";
+      std::string expected = u8"\uffff";
       auto status = make_status(input.begin(), input.end());
       auto output = json::decodeStringInPlace(status);
       AssertThat(output, Equals(expected));
     });
 
-    it("1.6. Can detect a bad unicode char", [&]() {
+    it("1.7. Can detect a bad unicode char", [&]() {
       std::string input = R"(\u03E01111111111111")";
-      std::string expected = u8"\u03E0";
       AssertThrows(ParserError,
-      auto status = make_status(input.begin(), input.end());
+                   auto status = make_status(input.begin(), input.end());
                    json::decodeStringInPlace(status));
     });
 
