@@ -48,10 +48,10 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
-    it("2.3 Can read a 4 byte encoded unicode char", [&]() {
-      std::string input = u8"\u2966";
+    it("2.3 Can read the highest value char", [&]() {
+      std::string input = u8"\U0001F8FF";
       std::u32string output = U"";
-      std::u32string expected = U"\u2966";
+      std::u32string expected = U"\U0001F8FF";
       from8(input.cbegin(), std::back_inserter(output));
       AssertThat(output, Equals(expected));
     });
