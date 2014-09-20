@@ -64,6 +64,14 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
+    it("2.5 Can read a 5 byte encoded char", [&]() {
+      std::string input = u8"�";
+      std::u32string output = U"";
+      std::u32string expected = U"�";
+      from8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
   });
 });
 
