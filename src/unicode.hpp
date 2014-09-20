@@ -48,7 +48,7 @@ inline void from8(In in, Out out) {
   */
 
   // Read the first byte
-  auto byte = *(in++);
+  unsigned char byte = *(in++);
 
   // Simplest most common case - one byte encoding
   if ((byte & 0x80) == 0) {
@@ -71,15 +71,15 @@ inline void from8(In in, Out out) {
    * mask        = 0001 1111
    */
 
-  decltype(byte) mask = 0xE0;
+  unsigned char mask = 0xE0;
   char32_t result = 0;
-  int bytesToRead = 2;
+  int bytesToRead = 1; // Number of bytes left to read .. will be filled in once we've read the first byte
 
-  while (bytesToRead <= 6) {
-    auto tmp = byte & mask;
-    if (tmp == mask << 1) {
+  while (bytesToRead < 6) {
+    unsigned char tmp = byte & mask;
+    if (tmp == (unsigned char)(mask << 1)) {
       // Get the actual encoded value
-      byte &= !mask;  // 110x xxxx & 0011 1111 = 000x xxxx
+      byte &= ~mask;  // 110x xxxx & 0011 1111 = 000x xxxx
       break;
     }
     mask = (mask >> 1) | 0x80; // 1100 000 => 1110 0000
