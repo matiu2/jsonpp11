@@ -24,10 +24,10 @@ go_bandit([]() {
 
   describe("utf-8 Reader", [&]() {
 
-    it("1.0 Can read a simple unicode char", [&]() {
-      std::string input = u8"\u0466";
+    it("2.0 Can read a simple unicode char", [&]() {
+      std::string input = u8"\u0066";
       std::u32string output = U"";
-      std::u32string expected = U"\u0466";
+      std::u32string expected = U"\u0066";
       from8(input.cbegin(), std::back_inserter(output));
       AssertThat(output, Equals(expected));
     });
