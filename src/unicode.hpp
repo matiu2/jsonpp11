@@ -73,8 +73,10 @@ inline void from8(In in, Out out) {
 
   unsigned char mask = 0xE0;
   char32_t result = 0;
-  int bytesToRead = 1; // Number of bytes left to read .. will be filled in once we've read the first byte
+  int bytesToRead = 1; // Number of bytes left to read .. will be filled in once
+                       // we've read the first byte
 
+  // Read the first byte
   while (bytesToRead < 6) {
     unsigned char tmp = byte & mask;
     if (tmp == (unsigned char)(mask << 1)) {

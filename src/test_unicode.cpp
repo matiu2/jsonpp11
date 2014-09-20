@@ -40,6 +40,14 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
+    it("2.2 Can read a 3 byte encoded unicode char", [&]() {
+      std::string input = u8"\u0966";
+      std::u32string output = U"";
+      std::u32string expected = U"\u0966";
+      from8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
   });
 });
 
