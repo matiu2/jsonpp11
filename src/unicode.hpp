@@ -8,6 +8,11 @@
 
 namespace json {
 
+/// Thrown for unicode encoding/decoding errors
+struct UnicodeError : std::runtime_error {
+  UnicodeError(const char* msg) : std::runtime_error(msg) {}
+};
+
 /**
 * @brief Converts from utf-8 to utf-32; takes two iterators.
 *
@@ -90,7 +95,7 @@ inline void from8(In in, Out out) {
 
   // If 'byte' has 7 1s at the top, it's not utf-8 (1111 1110)
   if ((byte & 0xFE) == 0xFE)
-    throw std::logic_error("Bad utf-8 first char");
+    throw UnicodeError("Bad utf-8 first char");
 
   result = byte;
 
@@ -100,7 +105,7 @@ inline void from8(In in, Out out) {
     // Each subsequent char must have the format 10xx xxxx
     // 10xx xxxx & 1100 0000 must equal 1000 0000
     if ((byte & 0xC0) != 0x80)
-      throw std::logic_error("Bad utf-8 char");
+      throw UnicodeError("Bad utf-8 char");
     result = (result << 6) | (byte & 0x3F); // Read in the 6 bytes of data
   }
 

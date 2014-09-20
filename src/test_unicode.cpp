@@ -72,6 +72,13 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
+    it("2.5 Can detect a bad start char", [&]() {
+      unsigned char input[] = {0xFE};
+      std::u32string output = U"";
+      AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
+      AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 first char"));
+    });
+
   });
 });
 
