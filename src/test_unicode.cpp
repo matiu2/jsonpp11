@@ -98,6 +98,67 @@ go_bandit([]() {
     });
 
   });
+
+  describe("utf-8 Writer", [&]() {
+
+    it("3.0 Can write a simple char", [&]() {
+      std::u32string input = U"\u0066";
+      std::string output = u8"";
+      std::string expected = u8"\u0066";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.1 Can write a 2 byte encoded unicode char", [&]() {
+      std::u32string input = U"\u0466";
+      std::string output = u8"";
+      std::string expected = u8"\u0466";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.2 Can write a 3 byte encoded unicode char", [&]() {
+      std::u32string input = U"\u0966";
+      std::string output = u8"";
+      std::string expected = u8"\u0966";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.3 Can write the highest value char", [&]() {
+      std::u32string input = U"\U0001F8FF";
+      std::string output = u8"";
+      std::string expected = u8"\U0001F8FF";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.4 Can write a 4 byte encoded char", [&]() {
+      std::u32string input = U"𰵀";
+      std::string output = u8"";
+      std::string expected = u8"𰵀";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.5 Can write a 5 byte encoded char", [&]() {
+      std::u32string input = U"�";
+      std::string output = u8"";
+      std::string expected = u8"�";
+      to8(input.cbegin(), std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+    it("3.5 Can write a 6 byte encoded char", [&]() {
+      char32_t input[] = {0x7FFFFFFF};
+      std::basic_string<unsigned char> output = {};
+      std::basic_string<unsigned char> expected = {0xFD, 0xBF, 0xBF, 0xBF, 0xBF, 0xBF};
+      to8(input, std::back_inserter(output));
+      AssertThat(output, Equals(expected));
+    });
+
+  });
+
 });
 
 int main(int argc, char *argv[]) { return bandit::run(argc, argv); }

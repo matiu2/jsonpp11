@@ -11,8 +11,9 @@ using namespace json;
 
 // Just for snowhouse 'Equals' to work
 namespace std {
-template <typename T>
-bool operator ==(const std::string& a, const json::string_reference<T>& b) {
+
+template <typename T, typename Traits=std::iterator_traits<T>>
+bool operator ==(const std::basic_string<typename T::value_type>& a, const json::string_reference<T>& b) {
   return b == a;
 }
 

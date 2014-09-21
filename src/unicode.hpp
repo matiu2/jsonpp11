@@ -155,13 +155,71 @@ inline void from16(In in, Out out) {
 */
 template <typename In, typename Out,
           typename InTraits=iterator_traits<In>>
-inline void to8(In , Out ) {
+inline void to8(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-8");
   static_assert(is_output_iterator<Out>(), "We read in UTF-32 and output UTF-8");
   static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
   static_assert(is_assignable<remove_pointer<Out>, char>(),
                 "out should be an output iterator that lets us write char");
 
+  using Char = unsigned char;
+
+  /*
+     UCS-4 range (hex.)           UTF-8 octet sequence (binary)
+     0000 0000-0000 007F   0xxxxxxx
+     0000 0080-0000 07FF   110xxxxx 10xxxxxx
+     0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
+
+     0001 0000-001F FFFF   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     0020 0000-03FF FFFF   111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+     0400 0000-7FFF FFFF   1111110x 10xxxxxx ... 10xxxxxx
+  */
+
+  // Get the unicode char
+  char32_t u = *in;
+
+  // Get the number of bytes needed to encode a unicode character in utf8
+  int numBytes = 1;
+  char32_t checker = 0x7f;
+  if (u > checker) {
+    checker <<= 4;
+    checker |= 0xf;
+    numBytes += 1;
+    while (u > checker) {
+      checker <<= 5;
+      checker |= 0x1f;
+      ++numBytes;
+    }
+  }
+  Char stack[6]; // Maximum of 6 bytes for any utf8 encoding. Stack so we can
+                 // reverse the order on the way out.
+  assert(numBytes <= 6);
+  if (numBytes > 6)
+    throw UnicodeError("UTF-8 can only encode 6 bytes");
+  Char *up = stack; // We need to reverse the output order
+  if (numBytes == 1) {
+    *(up++) = static_cast<Char>(u);
+  } else {
+    for (int i = 1; i < numBytes; ++i) {
+      Char byte = u & 0x3f; // Only encoding 6 bits right now
+      byte |= 0x80;         // Make sure the high bit is set
+      *(up++) = byte;
+      u >>= 6;
+    }
+    // The last byte is special
+    const Char mask = 0x3f >> (numBytes - 2);
+    Char byte = u & mask;
+    Char top = 0xc0;
+    for (int i = 2; i < numBytes; ++i) {
+      top >>= 1;
+      top |= 0x80;
+    }
+    byte |= top;
+    *(up++) = byte;
+  }
+  // Unravel the stack
+  while (up != stack)
+    *(out++) = *(--up);
 }
 
 /**
