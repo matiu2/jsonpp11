@@ -26,14 +26,16 @@ inline Iterator findEndOfUnchangedCharBlock(Iterator p, Iterator pe) {
 
 /// Most basic string parser. Calls back functions for each token/block that it
 /// finds.
-template <typename Status>
-inline void parseString(
-    Status &status,
-    std::function<void(typename Status::iterator, typename Status::iterator)>
-        recordUnchangedChars, /// Takes the begin and end iterators
-                              /// of a block of unchanged chars
-    std::function<void(typename Status::iterator_traits::value_type)>
-        recordChar, std::function<void(char32_t)> recordUnicode) {
+template <typename Status,
+          typename f1 = std::function<
+              void(typename Status::iterator, typename Status::iterator)>,
+          typename f2 =
+              std::function<void(typename Status::iterator_traits::value_type)>>
+inline void
+parseString(Status &status,
+            f1 recordUnchangedChars, /// Takes the begin and end iterators of a
+                                     /// block of unchanged chars
+            f2 recordChar, std::function<void(char32_t)> recordUnicode) {
 
   using Char = typename Status::iterator_traits::value_type;
   auto& p = status.p;
