@@ -72,17 +72,26 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
-    it("2.5 Can detect a bad start char", [&]() {
+    it("2.6 Can detect a bad start char", [&]() {
       unsigned char input[] = {0xFE};
       std::u32string output = U"";
       AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
       AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 first char"));
     });
 
-    it("2.6 Can detect a bad mid stream char with extra bit set", [&]() {
+    it("2.7 Can detect a bad mid stream char with extra bit set", [&]() {
       // Good sequence would be: 110xxxxx 10xxxxxx
       // Set the wrong bit:      110xxxxx 11xxxxxx
       unsigned char input[] = {0xE0, 0xC0};
+      std::u32string output = U"";
+      AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
+      AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 char"));
+    });
+
+    it("2.8 Can detect a bad mid stream char with extra bit set", [&]() {
+      // Good sequence would be: 110xxxxx 10xxxxxx
+      // Don't set the top bit:  110xxxxx 00xxxxxx
+      unsigned char input[] = {0xE0, 0x00};
       std::u32string output = U"";
       AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
       AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 char"));
