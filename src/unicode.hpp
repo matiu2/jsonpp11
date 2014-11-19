@@ -8,6 +8,32 @@
 
 namespace json {
 
+/// Returns the number of characters needed to record the unicode character 'u'
+/// to a medium of 'T'
+template <typename T> int getNumChars(char32_t u) {
+  switch (sizeof(T)) {
+  case 1: {
+    int numBytes = 1;
+    char32_t checker = 0x7f;
+    if (u > checker) {
+      checker <<= 4;
+      checker |= 0xf;
+      numBytes += 1;
+      while (u > checker) {
+        checker <<= 5;
+        checker |= 0x1f;
+        ++numBytes;
+      }
+    }
+    return numBytes;
+  }
+  case 2:
+    return ((u <= 0xD7FF) || (u >= 0xE000)) ? 1 : 2;
+  case 4:
+    return 1;
+  };
+}
+
 /// Thrown for unicode encoding/decoding errors
 struct UnicodeError : std::runtime_error {
   UnicodeError(const char* msg) : std::runtime_error(msg) {}
@@ -155,12 +181,9 @@ inline void from16(In in, Out out) {
 */
 template <typename In, typename Out,
           typename InTraits=iterator_traits<In>>
-inline void to8(In in, Out out) {
+inline int to8(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-8");
-  static_assert(is_output_iterator<Out>(), "We read in UTF-32 and output UTF-8");
   static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
-  static_assert(is_assignable<remove_pointer<Out>, char>(),
-                "out should be an output iterator that lets us write char");
 
   using Char = unsigned char;
 
@@ -179,38 +202,28 @@ inline void to8(In in, Out out) {
   char32_t u = *in;
 
   // Get the number of bytes needed to encode a unicode character in utf8
-  int numBytes = 1;
-  char32_t checker = 0x7f;
-  if (u > checker) {
-    checker <<= 4;
-    checker |= 0xf;
-    numBytes += 1;
-    while (u > checker) {
-      checker <<= 5;
-      checker |= 0x1f;
-      ++numBytes;
-    }
-  }
+  int numChars = getNumChars<unsigned char>(u);
+  assert(numChars <= 6);
+  if (numChars > 6)
+    throw UnicodeError("UTF-8 can only encode 6 bytes");
+
   Char stack[6]; // Maximum of 6 bytes for any utf8 encoding. Stack so we can
                  // reverse the order on the way out.
-  assert(numBytes <= 6);
-  if (numBytes > 6)
-    throw UnicodeError("UTF-8 can only encode 6 bytes");
   Char *up = stack; // We need to reverse the output order
-  if (numBytes == 1) {
+  if (numChars == 1) {
     *(up++) = static_cast<Char>(u);
   } else {
-    for (int i = 1; i < numBytes; ++i) {
+    for (int i = 1; i < numChars; ++i) {
       Char byte = u & 0x3f; // Only encoding 6 bits right now
       byte |= 0x80;         // Make sure the high bit is set
       *(up++) = byte;
       u >>= 6;
     }
     // The last byte is special
-    const Char mask = 0x3f >> (numBytes - 2);
+    const Char mask = 0x3f >> (numChars - 2);
     Char byte = u & mask;
     Char top = 0xc0;
-    for (int i = 2; i < numBytes; ++i) {
+    for (int i = 2; i < numChars; ++i) {
       top >>= 1;
       top |= 0x80;
     }
@@ -220,6 +233,7 @@ inline void to8(In in, Out out) {
   // Unravel the stack
   while (up != stack)
     *(out++) = *(--up);
+  return numChars;
 }
 
 /**
@@ -233,16 +247,14 @@ inline void to8(In in, Out out) {
 */
 template <typename In, typename Out,
           typename InTraits=iterator_traits<In>>
-inline void to16(In in, Out out) {
+inline int to16(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-16");
-  static_assert(is_output_iterator<Out>(), "We read in UTF-32 and output UTF-16");
   static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
-  static_assert(is_assignable<remove_pointer<Out>, char16_t>(),
-                "out should be an output iterator that lets us write char16_t");
 
   // Is this in one of the first plane ?
+  int bytesWritten = 1;
   if ((*in <= 0xD7FF) || (*in >= 0xE000)) {
-    *(out++) << static_cast<char16_t>(*in);
+    *out = static_cast<char16_t>(*in);
   } else {
     char32_t chr = *in - 0x10000;
     char16_t top = chr >> 10;      // Top 10 bits
@@ -250,10 +262,12 @@ inline void to16(In in, Out out) {
     top += 0xD800;
     bottom += 0xDC00;
     // Output
-    *(out++) << top;
-    *(out++) << bottom;
+    *(out++) = top;
+    *out = bottom;
+    bytesWritten = 2;
   }
   ++in;
+  return bytesWritten;
 }
 
 }

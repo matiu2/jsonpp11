@@ -122,7 +122,8 @@ template <typename Status> inline void readNull(Status &status) {
   static_assert(is_valid_status<Status>(), "The status object must have "
                                            "iterators p, pe, and an error "
                                            "thrower function; onError");
-  checkStaticString(status, "ull"); // The 'n' was already confirmed by getNextOuterToken
+  requireStaticString(
+      status, "ull"); // The 'n' was already confirmed by getNextOuterToken
 }
 
 /**
@@ -136,10 +137,10 @@ template <typename Status> inline bool readBoolean(Status &status) {
                                            "thrower function; onError");
   switch (*status.p++) {
   case 't':
-    checkStaticString(status, "rue");
+    requireStaticString(status, "rue");
     return true;
   case 'f':
-    checkStaticString(status, "alse");
+    requireStaticString(status, "alse");
     return false;
   default:
     status.onError("Expected 'true' or 'false'", status.p);

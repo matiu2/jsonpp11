@@ -3,7 +3,6 @@
 #include "error.hpp"
 #include "../utils.hpp"
 #include "../unicode.hpp"
-#include "utf8_writer.hpp"
 #include "status.hpp"
 
 namespace json {
@@ -42,14 +41,17 @@ parseString(Status &status,
   const auto& pe = status.pe;
 
   /// Handle the 4 digits of a unicode char
-  std::function<char32_t()> readUnicode = [&]() -> char32_t {
+  std::function<char32_t(Status &)> readUnicode = [&readUnicode](Status &s) -> char32_t {
     char16_t u[2] = {0,0};
     int uniCharNibbles = 0;
+    auto& p = s.p;
+    auto& pe = s.pe;
     while (p != pe) {
       if (uniCharNibbles == 8) {
         std::stringstream msg;
-        msg << "Max unicode data permitted in JSON is 4 bytes";
-        status.onError(msg.str(), p);
+        msg << "A unicode character must be of the format \u0000 where 0000 "
+               "are 4 hexadecimal characters";
+        s.onError(msg.str(), p);
       }
       Char ch = *p;
       if ((ch >= '0') && (ch <= '9')) {
@@ -69,23 +71,22 @@ parseString(Status &status,
     // See how many hex characters we got
     switch (uniCharNibbles) {
     case 0:
-      status.onError("\\u with no hex after it", p);
+      s.onError("\\u with no hex after it", p);
     case 1:
     case 2:
-      status.onError("\\u needs at least 3 hex chars after it", p);
-    case 3: {
-      // This is a UTF-16 encoded number - We need to get the next pair
-      checkStaticString(status, "\\u");
-      char32_t secondByte = readUnicode();
-      assert(secondByte <
-             std::numeric_limits<
-                 char16_t>::max()); // The second byte should fit in a u16
-      u[1] = static_cast<char16_t>(secondByte);
-      char32_t out;
-      from16(u, &out);
-      return out;
-    }
+    case 3:
+      s.onError("\\u needs 4 hex chars after it", p);
     case 4:
+      // See if we're followed by another \u
+      auto peeker = s;
+      if (checkStaticString(peeker, R"(\u)")) {
+        u[1] = readUnicode(peeker);
+        char32_t result;
+        // Decode the two utf chars
+        from16(u, &result);
+        s = peeker;
+        return result;
+      }
       return *u;
     }
     assert("Code should never reach here, onError should throw above");
@@ -118,7 +119,8 @@ parseString(Status &status,
       break;
     case 'u':
       ++p; // Skip over the 'u'
-      recordUnicode(readUnicode());
+      recordUnicode(readUnicode(status));
+      // Skip ahead to see if it's two 16 b
       break;
     default:
       return false;
@@ -252,7 +254,7 @@ inline size_t getDecodedStringLength(Status& status) {
         ++result;
   };
   auto recordChar = [&](char) { ++result; };
-  auto recordUnicode = [&](char32_t u) { result += getNumBytes(u); };
+  auto recordUnicode = [&](char32_t u) { result += getNumChars<Status::iterator::value_type>(u); };
   parseString(p, pe, recordUnchangedChars, recordChar, recordUnicode);
   return result;
 }
@@ -306,7 +308,26 @@ decodeStringInPlace(Status &status) {
   // Just advance the end pointer
   auto recordChar = [&](Char c) { *(end++) = c; };
   // UTF-8 encode a unicode char
-  auto recordUnicode = [&](char32_t u) { end = utf8encode(u, end); };
+  auto recordUnicode = [&](char32_t u) {
+    switch (sizeof(Char)) {
+    case 1: {
+      int i = to8(&u, end);
+      while (i--)
+        ++end; // TODO: Find a better way to increase the iterator
+      break;
+    }
+    case 2: {
+      int i = to16(&u, end);
+      while (i--)
+        ++end; // TODO: Find a better way to increase the iterator
+      break;
+    }
+    case 4: {
+      *(end++) = u;
+      break;
+    }
+    };
+  };
   parseString(status, recordUnchangedChars, recordChar, recordUnicode);
   return {begin, end};
 }
