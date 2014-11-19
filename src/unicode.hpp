@@ -270,4 +270,19 @@ inline int to16(In in, Out out) {
   return bytesWritten;
 }
 
+/// Repeatedly applies one of the above functions to iterators
+template<typename In, typename Out>
+inline void transform(In begin, In end, Out out, std::function<void(In, Out)> converter) {
+  while (begin != end)
+    converter(begin, out);
+}
+
+/// Repeatedly transforms utf8 encoded text into another type unicode
+template<typename In, typename Out>
+inline void transformFrom8(In begin, In end, Out out) {
+  while (begin != end)
+    from8(begin, out);
+}
+
+
 }
