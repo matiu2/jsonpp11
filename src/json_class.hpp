@@ -95,6 +95,7 @@ public:
     JSON(bool val, int) : type(boolean), value{val, 0} {} 
     JSON(long double val) : type(number), value{val} {}
     JSON(std::string val) : type(text), value{val} {}
+    JSON(const char* val) : type(text), value{std::string(val)} {}
     JSON(JMap val) : type(map), value{val} {}
     JSON(JList val) : type(list), value{val} {}
     JSON(const JSON& other) : type(null) { copyFromOther(other); }

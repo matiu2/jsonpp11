@@ -69,6 +69,16 @@ go_bandit([]() {
       AssertThat(output.str(), Equals("\"Hello there\""));
     });
 
+    it("1.6.5 Can be a const char *", [&]() {
+      const char *input = "Hello there";
+      JSON j(input);
+      AssertThat(j.isNull(), Equals(false));
+      AssertThat(j.whatIs(), Equals(JSON::text));
+      AssertThat((const std::string &)j, Equals("Hello there"));
+      output << j;
+      AssertThat(output.str(), Equals("\"Hello there\""));
+    });
+
     it("1.7. Reads in UTF8", [&]() {
       constexpr const char *s = u8"ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ";
       JSON j(s);
