@@ -209,6 +209,11 @@ public:
         }
       return false;
     }
+  std::string toString() const {
+    std::stringstream out;
+    out << *this;
+    return out.str();
+  }
 };
 
 std::ostream &operator<<(std::ostream &s, const JMap &j) {

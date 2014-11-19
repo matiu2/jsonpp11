@@ -103,6 +103,16 @@ go_bandit([]() {
       AssertThat(output.str(), Equals("[null,\"String\",4]"));
     });
 
+    it("1.9. Can output itself as a string", [&]() {
+      const char* username = "mister awesome";
+      const char* apiKey = "1234567890";
+      JSON json(JMap{{"auth", JMap{{"RAX-KSKEY:apiKeyCredentials",
+                                    JMap{{"username", username},
+                                         {"apiKey", apiKey}}}}}});
+      std::string output = json.toString();
+      AssertThat(output, Equals(R"({"auth":{"RAX-KSKEY:apiKeyCredentials":{"apiKey":"1234567890","username":"mister awesome"}}})"));
+    });
+
   });
 
   describe("The JSON model as a map", [&]() {
