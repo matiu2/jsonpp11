@@ -8,4 +8,4 @@ add_test(test_json_class test_json_class)
 
 add_subdirectory(parser)
 
-install(FILES unicode.hpp utils.hpp json_class.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11)
+install(FILES unicode.hpp utils.hpp json_class.hpp parser.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11)

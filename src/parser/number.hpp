@@ -47,7 +47,7 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 /// @param pe Points to one past the end of the JSON input
 /// @param output will be filled with the value of the number we parse
 template <typename Output, typename Status>
-inline Output parseNumber(Status &status) {
+inline Output readNumber(Status &status) {
 
   static_assert(is_valid_status<Status>(), "The status object must have "
                                            "iterators p, pe, and an error "
