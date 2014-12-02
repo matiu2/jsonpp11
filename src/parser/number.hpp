@@ -60,11 +60,10 @@ inline Output readNumber(Status &status) {
 
   auto& p = status.p;
   const auto& pe = status.pe;
-  const auto& onError = status.onError;
 
   // Check that we have some input
   if (p == pe)
-    onError("No number found. At end of input", p);
+    status.onError("No number found. At end of input");
 
   // Types ////////////////////
 
@@ -154,13 +153,13 @@ inline Output readNumber(Status &status) {
         recordDecimal();
         break;
       case dot:
-        onError("Second '.' found in a number", p);
+        status.onError("Second '.' found in a number");
       case exponent:
         return token;
       case negative:
-        onError("Didn't expect a '-' in the middle of a number", p);
+        status.onError("Didn't expect a '-' in the middle of a number");
       case positive:
-        onError("Didn't expect a '+' in the middle of a number", p);
+        status.onError("Didn't expect a '+' in the middle of a number");
       default:
         return END;
       };
@@ -180,7 +179,7 @@ inline Output readNumber(Status &status) {
     case digit:
       break;
     default:
-      onError("Expected a '+', '-', or a digit after the 'e' for exponent", p);
+      status.onError("Expected a '+', '-', or a digit after the 'e' for exponent");
     }
     // Now read the rest of the exponent digits
     while (p != pe) {
@@ -190,13 +189,13 @@ inline Output readNumber(Status &status) {
         recordExponent();
         break;
       case dot:
-        onError("'.' found in a exponent", p);
+        status.onError("'.' found in a exponent");
       case exponent:
-        onError("Second 'e' for exponent found in number", p);
+        status.onError("Second 'e' for exponent found in number");
       case negative:
-        onError("Didn't expect a '-' in the middle of a number", p);
+        status.onError("Didn't expect a '-' in the middle of a number");
       case positive:
-        onError("Didn't expect a '+' in the middle of a number", p);
+        status.onError("Didn't expect a '+' in the middle of a number");
       default:
         return END;
       }
@@ -217,7 +216,7 @@ inline Output readNumber(Status &status) {
       intIsNeg = true;
       break;
     default:
-      onError("Expected a digit or a '-'", p);
+      status.onError("Expected a digit or a '-'");
     };
     // Read the rest of the integer part
     while (p != pe) {
@@ -230,9 +229,9 @@ inline Output readNumber(Status &status) {
       case exponent:
         return readExponentPart();
       case negative:
-        onError("Didn't expect a '-' in the middle of a number", p);
+        status.onError("Didn't expect a '-' in the middle of a number");
       case positive:
-        onError("Didn't expect a '+' in the middle of a number", p);
+        status.onError("Didn't expect a '+' in the middle of a number");
       default:
         return END;
       };
@@ -248,7 +247,7 @@ inline Output readNumber(Status &status) {
     } else {
       // Might reach here if we find for example, a standalone + or - in the
       // json
-      onError("Couldn't read a number", p);
+      status.onError("Couldn't read a number");
     }
     assert("Code flow should never get here. onError should throw");
     return (Output)0;
@@ -272,13 +271,13 @@ inline Output readNumber(Status &status) {
     return make_number();
   default:
     assert("Should never reach here");
-    onError("Unexpected token in number", p);
+    status.onError("Unexpected token in number");
   };
 
   switch (token) {
   case exponent:
     if (haveExponent)
-      onError("found two exponents in a json number", p);
+      status.onError("found two exponents in a json number");
     token = readExponentPart();
     break;
   case END:
@@ -286,7 +285,7 @@ inline Output readNumber(Status &status) {
   default:
     assert("Should never get here. All error conditions should have been "
            "handled above");
-    onError("Unexpected token in number", p);
+    status.onError("Unexpected token in number");
   }
 
   assert("Should never get here. All error conditions should have been "

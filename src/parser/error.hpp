@@ -39,18 +39,18 @@ public:
 // ParserError class to throw
 
 /// Throws the LocatingParserError
-template <typename T>
-enable_if<has_location<T>(), void> throwError(std::string msg, T iter) {
+template <typename Iterator>
+enable_if<has_location<Iterator>(), void> throwError(std::string msg, Iterator iter) {
   throw LocatingParserError(msg, iter.row, iter.col);
 }
 
 /// Throws the ParserError
-template <typename T>
-enable_if<!has_location<T>(), void> throwError(std::string msg, T) {
+template <typename Iterator>
+enable_if<!has_location<Iterator>(), void> throwError(std::string msg, Iterator) {
   throw ParserError(msg);
 }
 
 /// A callable type that can throw errors for us
-template <typename T>
-using ErrorThrower = std::function<void(std::string msg, T)>;
+template <typename Iterator>
+using ErrorThrower = std::function<void(std::string msg, Iterator)>;
 }

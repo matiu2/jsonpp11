@@ -143,7 +143,7 @@ template <typename Status> inline bool readBoolean(Status &status) {
     requireStaticString(status, "alse");
     return false;
   default:
-    status.onError("Expected 'true' or 'false'", status.p);
+    status.onError("Expected 'true' or 'false'");
   }
   assert("Code flow should never reach here, as onError should throw");
   return false;

@@ -119,6 +119,7 @@ template <typename T> constexpr bool has_location() {
   return do_has_location<T>::value;
 }
 
+/// An algoritm for checking if two series are equal, available in c++14, but we want it now :)
 template <typename Iterator1, typename Iterator2,
           typename Iterator1Traits = iterator_traits<Iterator1>,
           typename Iterator2Traits = iterator_traits<Iterator2>>

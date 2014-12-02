@@ -4,6 +4,11 @@
 #include "../utils.hpp"
 #include "../unicode.hpp"
 #include "status.hpp"
+#include "utf8_writer.hpp"
+
+#include <string>
+#include <algorithm>
+#include <iterator>
 
 namespace json {
 
@@ -51,7 +56,7 @@ parseString(Status &status,
         std::stringstream msg;
         msg << "A unicode character must be of the format \u0000 where 0000 "
                "are 4 hexadecimal characters";
-        s.onError(msg.str(), p);
+        s.onError(msg.str());
       }
       Char ch = *p;
       if ((ch >= '0') && (ch <= '9')) {
@@ -71,11 +76,11 @@ parseString(Status &status,
     // See how many hex characters we got
     switch (uniCharNibbles) {
     case 0:
-      s.onError("\\u with no hex after it", p);
+      s.onError("\\u with no hex after it");
     case 1:
     case 2:
     case 3:
-      s.onError("\\u needs 4 hex chars after it", p);
+      s.onError("\\u needs 4 hex chars after it");
     case 4:
       // See if we're followed by another \u
       auto peeker = s;
@@ -168,7 +173,7 @@ template <typename Iterator> struct string_reference {
   inline iterator end() { return _end; }
   inline iterator begin() const { return _begin; }
   inline iterator end() const { return _end; }
-  size_t size() const {
+  inline size_t size() const {
     if (is_random_access_iterator<Iterator>())
       return _end - _begin;
     else {
@@ -181,12 +186,16 @@ template <typename Iterator> struct string_reference {
       return result;
     }
   }
-  template <typename T>
-  bool operator ==(const T& other) const {
+  template <typename T> bool operator==(const T &other) const {
     return equal(cbegin(), cend(), other.cbegin(), other.cend());
   }
+  operator std::string() const {
+    std::string result;
+    result.reserve(size());
+    std::copy(cbegin(), cend(), std::back_inserter(result));
+    return result;
+  }
 };
-
 
 /**
  * @brief Return the size of a raw JSON encoded input string
@@ -242,20 +251,17 @@ inline size_t getDecodedStringLength(Status& status) {
 
   using Iterator = typename Status::iterator;
 
-  auto& p = status.p;
-  const auto& pe = status.pe;
-
   size_t result = 0;
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
-    if (is_random_access_iterator<Iterator>)
+    if (is_random_access_iterator<Iterator>())
       result += ucEnd - ucBegin;
     else
       while (ucBegin != ucEnd)
         ++result;
   };
   auto recordChar = [&](char) { ++result; };
-  auto recordUnicode = [&](char32_t u) { result += getNumChars<Status::iterator::value_type>(u); };
-  parseString(p, pe, recordUnchangedChars, recordChar, recordUnicode);
+  auto recordUnicode = [&](char32_t u) { result += getNumChars<typename Status::iterator::value_type>(u); };
+  parseString(status, recordUnchangedChars, recordChar, recordUnicode);
   return result;
 }
 
@@ -393,7 +399,16 @@ inline void decodeString(Status& status, OutputIterator out) {
   auto recordChar = [&](value_type c) { *(out++) = c; };
   // UTF-8 encode a unicode char
   auto recordUnicode = [&](char32_t u) { out = utf8encode(u, out); };
-  parseString(status, status, recordUnchangedChars, recordChar, recordUnicode);
+  parseString(status, recordUnchangedChars, recordChar, recordUnicode);
+}
+
+/// Decodes a JSON string
+template <typename Status>
+inline std::string decodeString(Status& status) {
+  std::string result;
+  result.reserve(getDecodedStringLength(status));
+  decodeString(status, std::back_inserter(result));
+  return result;
 }
 
 }

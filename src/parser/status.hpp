@@ -20,16 +20,21 @@ struct Status {
 
   iterator p;
   iterator pe;
-  ErrorThrower<iterator> onError = throwError<iterator>;
+  ErrorThrower<iterator> _onError = throwError<iterator>;
 
   Status(iterator p, iterator pe, ErrorThrower<iterator> onError = throwError<iterator>)
-  : p(p), pe(pe), onError(onError) {}
+  : p(p), pe(pe), _onError(onError) {}
 
   Status& operator =(Status& other) {
     p = other.p;
     pe = other.pe;
-    onError = other.onError;
+    _onError = other._onError;
     return *this;
+  }
+
+  void onError(const std::string& msg) {
+    if (_onError)
+      _onError(msg, p);
   }
 
 };
@@ -98,7 +103,7 @@ inline void requireStaticString(Status &status, const Char *expected) {
                                            "iterators p, pe, and an error "
                                            "thrower function; onError");
   if (!checkStaticString(status, expected))
-      status.onError(std::string("Static String '") + expected +
-                     "' doesn't match", status.p);
+    status.onError(std::string("Static String '") + expected +
+                   "' doesn't match");
 }
 }
