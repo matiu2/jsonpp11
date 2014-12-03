@@ -37,6 +37,11 @@ struct Status {
       _onError(msg, p);
   }
 
+  Status<Iterator, Iterator_traits> copy() const {
+    Status<Iterator, Iterator_traits> result = *this;
+    return result;
+  }
+
 };
 
 template <typename iterator,

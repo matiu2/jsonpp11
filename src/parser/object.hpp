@@ -27,10 +27,10 @@ bool expect(Token expected, Token got, Status& status) {
   return true;
 }
 
-/// @returns true if you got the type you wanted
+/// @returns a real token and returns it, or errors if it can't
 template <typename Status>
-bool expectAnyRealType(Status status) {
-  auto got = getNextOuterToken(status);
+Token expectAnyRealType(Status& status) {
+  Token got = getNextOuterToken(status);
   switch (got) {
   case null:
   case boolean:
@@ -38,7 +38,7 @@ bool expectAnyRealType(Status status) {
   case object:
   case number:
   case string:
-    return true;
+    return got;
   default: {
     std::stringstream msg;
     if (got == HIT_END)
@@ -47,9 +47,10 @@ bool expectAnyRealType(Status status) {
       msg << "Expected any real json type but got '" << (char)got
           << "' instead";
     status.onError(msg.str());
+    assert(true); // Should never reach here as 'onError' should throw
+    return ERROR;
   }
   };
-  return false;
 }
 
 /// Convenience function to read an object.
@@ -82,8 +83,7 @@ void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
     if (!expect(COLON, getNextOuterToken(status), status))
       break;
     // Read the value
-    if (!expectAnyRealType(status))
-      break;
+    next = expectAnyRealType(status);
 #ifndef NDEBUG
     b4 = p;
     onVal(next);

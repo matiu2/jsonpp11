@@ -138,6 +138,7 @@ parseString(Status &status,
   while (p != pe) {
     switch (*p) {
     case '"':
+      ++p;
       return;
     case '\\':
       if (handleEscape())
@@ -210,7 +211,7 @@ template <typename Iterator> struct string_reference {
  * @returns the length of the raw JSON string
  */
 template <typename Status>
-inline size_t getRawStringLength(Status& status) {
+inline size_t getRawStringLength(Status status) {
   static_assert(is_valid_status<Status>(),
                 "Status should derive from json::Status");
 
@@ -247,7 +248,7 @@ inline size_t getRawStringLength(Status& status) {
  * @returns The number of bytes needed to encode this json string
  */
 template <typename Status>
-inline size_t getDecodedStringLength(Status& status) {
+inline size_t getDecodedStringLength(Status status) {
 
   using Iterator = typename Status::iterator;
 
