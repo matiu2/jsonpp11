@@ -5,16 +5,6 @@
 
 namespace json {
 
-template <typename T, bool Is_lazy=false>
-struct iterator_traits : std::iterator_traits<T> {
-  static std::false_type is_lazy;
-};
-
-template <typename T>
-struct iterator_traits<T, true> : std::iterator_traits <T> {
-  static std::true_type is_lazy;
-};
-
 // Type function shortcut for std::enable_if
 template <bool B, typename T = void>
 using enable_if = typename std::enable_if<B, T>::type;
@@ -51,21 +41,21 @@ template <typename T> constexpr bool is_copy_assignable() {
 }
 
 /// Returns true if T is a forward iterator (can move forward)
-template <typename T, typename Traits = iterator_traits<T>>
+template <typename T, typename Traits = std::iterator_traits<T>>
 constexpr bool is_forward_iterator() {
   return std::is_base_of<std::forward_iterator_tag,
                          typename Traits::iterator_category>::value;
 }
 
 /// Returns true if Traits is an input iterator (can give us stuff to read )
-template <typename T, typename Traits = iterator_traits<T>>
+template <typename T, typename Traits = std::iterator_traits<T>>
 constexpr bool is_input_iterator() {
   return std::is_base_of<std::input_iterator_tag,
                          typename Traits::iterator_category>::value;
 }
 
 /// Returns true if Traits is an output iterator (can give us stuff to read )
-template <typename T, typename Traits = iterator_traits<T>>
+template <typename T, typename Traits = std::iterator_traits<T>>
 constexpr bool is_output_iterator() {
   return std::is_base_of<std::output_iterator_tag,
                          typename Traits::iterator_category>::value;
@@ -73,7 +63,7 @@ constexpr bool is_output_iterator() {
 
 /// Returns true if Traits is a random access iterator (can give us stuff to
 /// read )
-template <typename T, typename Traits = iterator_traits<T>>
+template <typename T, typename Traits = std::iterator_traits<T>>
 constexpr bool is_random_access_iterator() {
   return is_base_of<std::random_access_iterator_tag,
                     typename Traits::iterator_category>();
@@ -121,8 +111,8 @@ template <typename T> constexpr bool has_location() {
 
 /// An algoritm for checking if two series are equal, available in c++14, but we want it now :)
 template <typename Iterator1, typename Iterator2,
-          typename Iterator1Traits = iterator_traits<Iterator1>,
-          typename Iterator2Traits = iterator_traits<Iterator2>>
+          typename Iterator1Traits = std::iterator_traits<Iterator1>,
+          typename Iterator2Traits = std::iterator_traits<Iterator2>>
 bool equal(Iterator1 first_begin, Iterator1 first_end, Iterator2 second_begin,
            Iterator2 second_end) {
   static_assert(is_input_iterator<Iterator1Traits>(), "We need to be able to read from the input");

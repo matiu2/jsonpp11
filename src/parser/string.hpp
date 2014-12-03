@@ -350,7 +350,7 @@ decodeStringInPlace(Status &status) {
  * @tparam Status Some kind of parser.hpp Status template instantiation
  * @param Status A reference to a valid parser status instance
  * @tparam OutputIterator output iterator type
- * @tparam OutputTraits iterator_traits
+ * @tparam OutputTraits std::iterator_traits
  * @param p Start of JSON input, just after the first '"'
  * @param pe One past the end of the JSON input
  * @param out the output iterator, usually a back_inserter to a std::string
@@ -358,7 +358,7 @@ decodeStringInPlace(Status &status) {
  * @returns the number of bytes copied
  */
 template <typename Status, typename OutputIterator,
-          typename OutputTraits = iterator_traits<OutputIterator>>
+          typename OutputTraits = std::iterator_traits<OutputIterator>>
 size_t copyRawString(Status& status, OutputIterator out) {
   static_assert(is_output_iterator<OutputTraits>(),
                 "We need to be able to write to the output");
@@ -377,13 +377,13 @@ size_t copyRawString(Status& status, OutputIterator out) {
  * @tparam Status Some kind of parser.hpp Status template instantiation
  * @param Status A reference to a valid parser status instance
  * @tparam OutputIterator output iterator type
- * @tparam OutputTraits iterator_traits
+ * @tparam OutputTraits std::iterator_traits
  * @param p Start of JSON input, just after the first '"'
  * @param pe One past the end of the JSON input
  * @param out the output iterator, usually a back_inserter to a std::string
 */
 template <typename Status, typename OutputIterator,
-          typename OutputTraits = iterator_traits<OutputIterator>>
+          typename OutputTraits = std::iterator_traits<OutputIterator>>
 inline void decodeString(Status& status, OutputIterator out) {
 
   static_assert(is_output_iterator<OutputTraits>(),

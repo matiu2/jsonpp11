@@ -49,7 +49,7 @@ struct UnicodeError : std::runtime_error {
 * @param out The output iterator (we write 32 bit chars)
 */
 template <typename In, typename Out,
-          typename InTraits=iterator_traits<In>>
+          typename InTraits=std::iterator_traits<In>>
 inline void from8(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-8 and output UTF-32");
   static_assert(is_output_iterator<Out>(), "We read in UTF-8 and output UTF-32");
@@ -147,8 +147,8 @@ inline void from8(In in, Out out) {
 * @param in The input iterator (should provide 16 bit chars)
 * @param out The output iterator (we write 32 bit chars)
 */
-template <typename In, typename Out, typename InTraits = iterator_traits<In>,
-          typename OutTraits = iterator_traits<Out>>
+template <typename In, typename Out, typename InTraits = std::iterator_traits<In>,
+          typename OutTraits = std::iterator_traits<Out>>
 inline void from16(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-16 and output UTF-32");
   static_assert(sizeof(typename InTraits::value_type) == 2, "Expected the input to be 16 bits at a time");
@@ -180,7 +180,7 @@ inline void from16(In in, Out out) {
 * @param out The output iterator (we write 8 bit chars)
 */
 template <typename In, typename Out,
-          typename InTraits=iterator_traits<In>>
+          typename InTraits=std::iterator_traits<In>>
 inline int to8(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-8");
   static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
@@ -246,7 +246,7 @@ inline int to8(In in, Out out) {
 * @param out The output iterator (we write 16 bit chars)
 */
 template <typename In, typename Out,
-          typename InTraits=iterator_traits<In>>
+          typename InTraits=std::iterator_traits<In>>
 inline int to16(In in, Out out) {
   static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-16");
   static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");

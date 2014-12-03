@@ -9,6 +9,7 @@
 #include "status.hpp"
 #include "number.hpp"
 #include "object.hpp"
+#include "LocatingIterator.hpp"
 
 using namespace bandit;
 using namespace json;
@@ -22,7 +23,7 @@ go_bandit([]() {
     it("1.0 Can read a simple object", []() {
       std::string json(R"(  { "number": 12 } )");
 
-      auto s = json::make_status(json.begin(), json.end());
+      auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));
   
       // Line it up for reading the object
       Token token = getNextOuterToken(s);
