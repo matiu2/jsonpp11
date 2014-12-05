@@ -20,7 +20,7 @@ void readArray(Status &status, std::function<void(Token)> onVal) {
       // We're done
       break;
     // Read the next value
-    next = expectAnyRealType(status, ARRAY_END);
+    next = expectAnyRealType(status);
     if (next == ARRAY_END)
       return; 
 #ifndef NDEBUG

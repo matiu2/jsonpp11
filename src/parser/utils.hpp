@@ -22,13 +22,10 @@ bool expect(Token expected, Token got, Status& status) {
 }
 
 /// @param status the parser status
-/// @param alternative An acceptable alternative to a real token
 /// @returns a real token and returns it, or errors if it can't
 template <typename Status>
-Token expectAnyRealType(Status& status, Token alternative=ERROR) {
+Token expectAnyRealType(Status& status) {
   Token got = getNextOuterToken(status);
-  if ((alternative != ERROR) && (got == alternative))
-    return got;
   switch (got) {
   case null:
   case boolean:

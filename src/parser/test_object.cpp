@@ -20,7 +20,28 @@ go_bandit([]() {
 
   describe("readObject", [&]() {
 
-    it("1.0 Can read a simple object", []() {
+    it("1.0 Can read an empty object", []() {
+      std::string json("{}");
+
+      auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));
+  
+      // Line it up for reading the object
+      Token token = getNextOuterToken(s);
+      AssertThat(token, Equals(object));
+
+      bool gotAttr = false;
+      bool gotVal = false;
+
+      auto onAttribute = [&](std::string &&) { gotAttr = true; };
+      auto onVal = [&](json::Token) { gotVal = true; };
+
+      readObject(s, onAttribute, onVal);
+  
+      AssertThat(gotAttr, Equals(false));
+      AssertThat(gotVal, Equals(false));
+    }); 
+
+    it("2.0 Can read a simple object", []() {
       std::string json(R"(  { "number": 12 } )");
 
       auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));
@@ -48,7 +69,7 @@ go_bandit([]() {
       AssertThat(s.p, Equals(json.begin() + 18)); // One past the '}'
     }); 
 
-    it("1.0 Can read an object", []() {
+    it("3.0 Can read an object", []() {
       std::string json(R"(  { "name": "smith", "age": 12, "rating": 2.4, "active": true } )");
 
       auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));

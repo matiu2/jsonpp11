@@ -25,6 +25,10 @@ go_bandit([]() {
 
       auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));
 
+      // Line it up for reading the object
+      Token token = getNextOuterToken(s);
+      AssertThat(token, Equals(array));
+
       bool called = false;
       auto onVal = [&](Token) { called = true; };
       readArray(s, onVal);
