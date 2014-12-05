@@ -36,6 +36,28 @@ go_bandit([]() {
       AssertThat(s.p, Equals(s.pe));
     }); 
 
+    it("2.0 Can read a single int array", []() {
+      std::string json = "[1]";
+
+      auto s = json::make_status(makeLocating(json.begin()), makeLocating(json.end()));
+
+      // Line it up for reading the object
+      Token token = getNextOuterToken(s);
+      AssertThat(token, Equals(array));
+
+      int val = 0;
+
+      auto onVal = [&](Token t) {
+        token = t;
+        val = readNumber<int>(s);
+      };
+
+      readArray(s, onVal);
+
+      AssertThat(token, Equals(number));
+      AssertThat(val, Equals(1));
+      AssertThat(s.p, Equals(s.pe));
+    }); 
   });
 });
 
