@@ -14,29 +14,22 @@ void readArray(Status &status, std::function<void(Token)> onVal) {
   auto& p = status.p;
   auto& pe = status.pe;
   while (p != pe) {
-    Token next = getNextOuterToken(status);
-    // Read the attribute name or the end of the object
-    if (next == ARRAY_END)
-      // We're done
-      break;
     // Read the next value
-    next = expectAnyRealType(status);
-    if (next == ARRAY_END)
+    auto acceptable = valueTokens();
+    acceptable.insert(ARRAY_END);
+    Token token = require(acceptable, status);
+    if (token == ARRAY_END)
       return; 
 #ifndef NDEBUG
     auto b4 = p;
-    onVal(next);
+    onVal(token);
     assert(b4 != p); // onVal must consume one value
 #else
-    onVal(next);
+    onVal(token);
 #endif
     // Read the comma or the end of the object
-    next = getNextOuterToken(status);
-    if (next == ARRAY_END)
-      // We're done
-      break;
-    if (!expect(COMMA, next, status))
-      // We needed a comma to continue without error
+    token = require({COMMA, ARRAY_END}, status);
+    if (token == ARRAY_END)
       break;
   }
 }

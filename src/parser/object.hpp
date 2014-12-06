@@ -22,13 +22,12 @@ void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
   auto& p = status.p;
   auto& pe = status.pe;
   while (p != pe) {
-    Token next = getNextOuterToken(status);
-    // Read the attribute name or the end of the object
-    if (next == OBJECT_END)
+    // We need an attribute, or the end of the object
+    Token token = require({OBJECT_END, string}, status);
+    if (token == OBJECT_END)
       // We're done
       break;
-    if (!expect(string, next, status))
-      break;
+    // Read the first attribute name
     std::string attrName;
     if (is_copy_assignable<
             typename std::iterator_traits<decltype(status.p)>::reference()>())
@@ -39,24 +38,20 @@ void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
     onAttribute(std::move(attrName));
     assert(b4 == p); // onAttribute must not consume anything
     // Read the ':' separator
-    if (!expect(COLON, getNextOuterToken(status), status))
-      break;
+    require(COLON, status);
     // Read the value
-    next = expectAnyRealType(status);
+    token = require(valueTokens(), status);
 #ifndef NDEBUG
     b4 = p;
-    onVal(next);
+    onVal(token);
     assert(b4 != p); // onVal must consume one value
 #else
-    onVal(next);
+    onVal(token);
 #endif
     // Read the comma or the end of the object
-    next = getNextOuterToken(status);
-    if (next == OBJECT_END)
-      // We're done
-      break;
-    if (!expect(COMMA, next, status))
-      // We needed a comma to continue without error
+    token = require({COMMA, OBJECT_END}, status);
+    // We're done
+    if (token == OBJECT_END)
       break;
   }
 }

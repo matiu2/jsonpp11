@@ -1,51 +1,55 @@
 /// General utilities for parsing code
 #pragma once
 
+#include <set>
+
 #include "status.hpp"
 
 namespace json {
 
-/// @returns true if you got the token you expected
+/// Throws an error if the next token is not acceptable
+/// @param acceptable Tokens that don't cause an error
+/// @param parser status
+/// return 
 template <typename Status>
-bool expect(Token expected, Token got, Status& status) {
-  if (expected != got) {
-    std::stringstream msg;
-    if (got == HIT_END)
-      msg << "Expected '" << (char)expected << "' but hit the end of input";
-    else
-      msg << "Expected '" << (char)expected << "' but got '" << (char)got
-          << "' instead";
-    status.onError(msg.str());
-    return false;
-  }
-  return true;
+Token require(std::set<Token> expected, Status& status) {
+  Token got = getNextOuterToken(status);
+  if (expected.find(got) != expected.end())
+    return got;
+  // Make up the error message
+  std::stringstream msg;
+  msg << "Expected ";
+  // List of expected tokens
+  for (auto token : expected)
+    msg << "'" << (char)token << "', ";
+  msg.seekp(-2, std::ios_base::cur); // Remove the last ', '
+  // 
+  if (got == HIT_END)
+    msg << "' but hit the end of input";
+  else
+    msg << "' but got '" << (char)got << "' instead";
+  status.onError(msg.str());
+  assert(true); // Code should never reach here. onError should throw an
+                // expection
+  return ERROR;
 }
 
-/// @param status the parser status
-/// @returns a real token and returns it, or errors if it can't
+/**
+* @brief Require a token with one single good possible value
+*
+* @param required The token that we need
+* @param status The parser status
+*
+* @return the token that we found
+* @throws calls onError for any other token
+*/
 template <typename Status>
-Token expectAnyRealType(Status& status) {
-  Token got = getNextOuterToken(status);
-  switch (got) {
-  case null:
-  case boolean:
-  case array:
-  case object:
-  case number:
-  case string:
-    return got;
-  default: {
-    std::stringstream msg;
-    if (got == HIT_END)
-      msg << "Expected any real json type but hit the end of input";
-    else
-      msg << "Expected any real json type but got '" << (char)got
-          << "' instead";
-    status.onError(msg.str());
-    assert(true); // Should never reach here as 'onError' should throw
-    return ERROR;
-  }
-  };
+Token require(Token required, Status& status) {
+  return require(std::set<Token>{required}, status);
+}
+
+const std::set<Token> valueTokens() {
+  return {null, boolean, array, object, number, string};
 }
 
 }

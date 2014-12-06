@@ -32,7 +32,7 @@ struct Status {
     return *this;
   }
 
-  void onError(const std::string& msg) {
+  void onError(const std::string& msg) const {
     if (_onError)
       _onError(msg, p);
   }
