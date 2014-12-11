@@ -12,6 +12,17 @@
 
 namespace json {
 
+template <typename Status>
+enable_if<is_copy_assignable<remove_pointer<typename Status::iterator>>(), std::string>
+best_string_decoder(Status &status) {
+  return decodeStringInPlace(status);
+}
+
+template <typename Status>
+std::string best_string_decoder(Status &status) {
+  return decodeString(status);
+}
+
 /// Convenience function to read an object.
 /// @onAttribute will be called when an attribute name is read
 /// @onVal will be read when the stream is ready to read a value. The function
@@ -28,12 +39,7 @@ void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
       // We're done
       break;
     // Read the first attribute name
-    std::string attrName;
-    if (is_copy_assignable<
-            typename std::iterator_traits<decltype(status.p)>::reference()>())
-      attrName = decodeStringInPlace(status);
-    else
-      attrName = decodeString(status);
+    std::string attrName = decodeString(status);
     auto b4 = p;
     onAttribute(std::move(attrName));
     assert(b4 == p); // onAttribute must not consume anything

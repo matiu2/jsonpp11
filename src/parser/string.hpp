@@ -254,11 +254,7 @@ inline size_t getDecodedStringLength(Status status) {
 
   size_t result = 0;
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
-    if (is_random_access_iterator<Iterator>())
-      result += ucEnd - ucBegin;
-    else
-      while (ucBegin != ucEnd)
-        ++result;
+    result += iterator_difference(ucBegin, ucEnd);
   };
   auto recordChar = [&](char) { ++result; };
   auto recordUnicode = [&](char32_t u) { result += getNumChars<typename Status::iterator::value_type>(u); };
@@ -280,8 +276,11 @@ inline size_t getDecodedStringLength(Status status) {
  * @returns a pair of iterators to the beginning and end of the decoded string
  */
 template <typename Status>
-inline string_reference<typename Status::iterator>
-decodeStringInPlace(Status &status) {
+inline enable_if<
+    is_copy_assignable<remove_pointer<typename Status::iterator>>() &&
+    is_output_iterator<typename Status::iterator>(),
+    string_reference<typename Status::iterator>>
+decodeString(Status &status) {
 
   static_assert(is_copy_assignable<remove_pointer<typename Status::iterator>>(),
                 "We need to be able to write to the input too");
@@ -297,13 +296,7 @@ decodeStringInPlace(Status &status) {
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
     if (!hadChangedChars) {
       // If we haven't had any changed chars, just increment our output position
-      if (is_random_access_iterator<Iterator>())
-        end += ucEnd - ucBegin;
-      else
-        while (ucBegin != ucEnd) {
-          ++ucBegin;
-          ++end;
-        }
+      end = add_to_iterator(end, subtract_from_iterator(ucEnd, ucBegin));
     } else {
       // Overwrite the output. All JSON converstions are shorter than the raw
       // json.
@@ -313,7 +306,7 @@ decodeStringInPlace(Status &status) {
     }
   };
   // Just advance the end pointer
-  auto recordChar = [&](Char c) { *(end++) = c; };
+  auto recordChar = [&](Char c) { *end = c; ++end; };
   // UTF-8 encode a unicode char
   auto recordUnicode = [&](char32_t u) {
     switch (sizeof(Char)) {

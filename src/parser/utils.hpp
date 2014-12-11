@@ -4,6 +4,7 @@
 #include <set>
 
 #include "status.hpp"
+#include "outer.hpp"
 
 namespace json {
 
@@ -23,7 +24,6 @@ Token require(std::set<Token> expected, Status& status) {
   for (auto token : expected)
     msg << "'" << (char)token << "', ";
   msg.seekp(-2, std::ios_base::cur); // Remove the last ', '
-  // 
   if (got == HIT_END)
     msg << "' but hit the end of input";
   else

@@ -40,12 +40,12 @@ go_bandit([]() {
 
   std::stringstream output;
 
-  describe("decodeStringInPlace", [&]() {
+  describe("decodeString with random access iterators", [&]() {
 
     it("1.1. Can be empty", [&]() {
       std::string input = R"(")";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output.begin(), Equals(output.end()));
     });
 
@@ -53,7 +53,7 @@ go_bandit([]() {
       std::string input = R"(x")";
       std::string expected = "x";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(expected, Is().EqualTo(output)); // Needs to be this way around to use the correct snowhouse template
     });
 
@@ -62,7 +62,7 @@ go_bandit([]() {
       std::string expected = "abcdefg";
       std::string expected2 = "(1241142";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output, Equals(expected));
       AssertThat(output, Is().Not().EqualTo(expected2));
     });
@@ -71,7 +71,7 @@ go_bandit([]() {
       std::string input = R"(\b\f\n\r\t")";
       std::string expected = "\b\f\n\r\t";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output, Equals(expected));
     });
 
@@ -79,7 +79,7 @@ go_bandit([]() {
       std::string input = R"(\u03E0")";
       std::string expected = u8"\u03E0";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output, Equals(expected));
     });
 
@@ -87,7 +87,7 @@ go_bandit([]() {
       std::string input = R"(\uFFFF")";
       std::string expected = u8"\uffff";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output, Equals(expected));
     });
 
@@ -95,14 +95,14 @@ go_bandit([]() {
       std::string input = R"(\u03E01111111111111")";
       AssertThrows(ParserError,
                    auto status = make_status(input.begin(), input.end());
-                   json::decodeStringInPlace(status));
+                   json::decodeString(status));
     });
 
     it("1.8. Can parse a 32 bit unicode char", [&]() {
       std::string input = R"(\uD834\uDD1E")";
       std::string expected = u8"\U0001D11E";
       auto status = make_status(input.begin(), input.end());
-      auto output = json::decodeStringInPlace(status);
+      auto output = json::decodeString(status);
       AssertThat(output, Equals(expected));
     });
 

@@ -4,8 +4,9 @@
 namespace json {
 
 template <typename T> struct LocatingIterator : T {
-  int row = 0;
-  int col = 0;
+  using original_type = T;
+  int row = 1;
+  int col = 1;
   inline LocatingIterator<T> &operator++() {
     if (**this == '\n') {
       ++row;

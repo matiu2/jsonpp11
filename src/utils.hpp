@@ -33,7 +33,10 @@ template <typename T> constexpr bool is_integral() {
   return std::is_integral<T>::value;
 }
 
-
+// Shortcut for std::is_const
+template <typename T> constexpr bool is_const() {
+  return std::is_const<T>::value;
+}
 
 // Shortcut for std::is_copy_assignable
 template <typename T> constexpr bool is_copy_assignable() {
@@ -109,6 +112,7 @@ template <typename T> constexpr bool has_location() {
   return do_has_location<T>::value;
 }
 
+
 /// An algoritm for checking if two series are equal, available in c++14, but we want it now :)
 template <typename Iterator1, typename Iterator2,
           typename Iterator1Traits = std::iterator_traits<Iterator1>,
@@ -138,4 +142,72 @@ struct show_size_of {
   SHOW_NUMBER<sizeof(T)> x;
 };
 
+/**
+* @brief Subtracts amount from iter
+*
+* @tparam T Iterator type
+* @param iter iterator to subtract from
+* @param amount amount to subtract
+*/
+template <typename T, typename Y>
+enable_if<is_random_access_iterator<T>()>
+subtract_from_iterator(T& iter, Y amount) {
+  iter -= amount;
+}
+
+/**
+* @brief Subtracts amount from iter
+*
+* @tparam T Iterator type
+* @param iter iterator to subtract from
+* @param amount amount to subtract
+*/
+template <typename T, typename Y>
+void subtract_from_iterator(T& iter, Y amount) {
+  for(int i=0; i<amount; ++i)
+    --iter;
+}
+
+/**
+* @brief Adds amount to iter
+*
+* @tparam T Iterator type
+* @param iter iterator to add to
+* @param amount amount to add
+*/
+template <typename T, typename Y>
+enable_if<is_random_access_iterator<T>()>
+add_to_iterator(T& iter, Y amount) {
+  iter += amount;
+}
+
+/**
+* @brief Adds amount to iter
+*
+* @tparam T Iterator type
+* @param iter iterator to add to
+* @param amount amount to add
+*/
+template <typename T, typename Y>
+void add_to_iterator(T& iter, Y amount) {
+  for(int i=0; i<amount; ++i)
+    ++iter;
+}
+
+template <typename T, typename Traits = std::iterator_traits<T>>
+enable_if<is_random_access_iterator<T>(), typename Traits::difference_type>
+iterator_difference(T a, T b) {
+  return b - a;
+}
+
+template <typename T, typename Traits = std::iterator_traits<T>>
+enable_if<!is_random_access_iterator<T>(), typename Traits::difference_type>
+iterator_difference(T a, T b) {
+  typename Traits::difference_type result = 0;
+  while (a != b) {
+    ++a;
+    ++result;
+  }
+  return result;
+}
 }
