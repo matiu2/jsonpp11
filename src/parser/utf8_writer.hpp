@@ -1,6 +1,8 @@
 #pragma once
 /// Funtions to convert wide characters to a utf8 encoded character sequence
 
+#include <cassert>
+
 namespace json {
 
 /**

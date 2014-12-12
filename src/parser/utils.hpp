@@ -6,6 +6,8 @@
 #include "status.hpp"
 #include "outer.hpp"
 
+#include <cassert>
+
 namespace json {
 
 /// Throws an error if the next token is not acceptable

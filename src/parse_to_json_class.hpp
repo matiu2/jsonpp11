@@ -12,6 +12,8 @@
 #include "parser/string.hpp"
 #include "parser/utils.hpp"
 
+#include <cassert>
+
 namespace json {
 
 template <typename Status>

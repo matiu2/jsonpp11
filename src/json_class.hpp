@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <iterator>
+#include <cassert>
 
 #include "unicode.hpp"
 

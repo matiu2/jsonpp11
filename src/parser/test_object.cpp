@@ -1,15 +1,16 @@
 //// Tests that we can read an object
 #include <bandit/bandit.h>
 
-#include <sstream>
-#include <string>
-#include <iterator>
-
 #include "outer.hpp"
 #include "status.hpp"
 #include "number.hpp"
 #include "object.hpp"
 #include "LocatingIterator.hpp"
+
+#include <sstream>
+#include <string>
+#include <iterator>
+#include <cassert>
 
 using namespace bandit;
 using namespace json;

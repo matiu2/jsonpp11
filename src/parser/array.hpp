@@ -4,6 +4,8 @@
 #include "status.hpp"
 #include "utils.hpp"
 
+#include <cassert>
+
 namespace json {
 
 /// Convenience function to read an object.

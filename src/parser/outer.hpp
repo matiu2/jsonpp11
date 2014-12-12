@@ -4,6 +4,8 @@
 
 #include "status.hpp"
 
+#include <cassert>
+
 namespace json {
 
 /// The tokens that we look for when trying to determine the JSON type

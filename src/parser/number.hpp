@@ -6,6 +6,7 @@
 #include "status.hpp"
 
 #include <type_traits>
+#include <cassert>
 
 namespace json {
 

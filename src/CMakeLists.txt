@@ -16,4 +16,4 @@ file(COPY sample.json DESTINATION .)
 
 add_subdirectory(parser)
 
-install(FILES unicode.hpp utils.hpp json_class.hpp parser.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11)
+install(FILES json_class.hpp parse_to_json_class.hpp unicode.hpp utils.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11)

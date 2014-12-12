@@ -20,4 +20,4 @@ add_executable(test_array test_array.cpp)
 target_link_libraries(test_array ${CPP})
 add_test(test_array test_array)
 
-install(FILES error.hpp number.hpp outer.hpp status.hpp string.hpp object.hpp array.hpp utf8_writer.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11/parser)
+install(FILES LocatingIterator.hpp array.hpp error.hpp number.hpp object.hpp outer.hpp status.hpp string.hpp utf8_writer.hpp utils.hpp DESTINATION ${CMAKE_INSTALL_PREFIX}/include/jsonpp11/parser)

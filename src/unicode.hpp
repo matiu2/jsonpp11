@@ -5,6 +5,8 @@
 #include "utils.hpp"
 
 #include <stdexcept>
+#include <cassert>
+
 
 namespace json {
 
