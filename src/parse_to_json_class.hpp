@@ -18,6 +18,7 @@ namespace json {
 
 template <typename Status>
 JSON readValue(Status& status, Token token=ERROR) {
+  static_assert(is_valid_status<Status>(), "You need to pass a status object to this function");
   if (token == ERROR)
     token = require(valueTokens(), status);
   switch (token) {
