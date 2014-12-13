@@ -12,7 +12,7 @@ add_executable(test_parse_to_json_class test_parse_to_json_class.cpp)
 target_link_libraries(test_parse_to_json_class ${CPP})
 add_test(test_parse_to_json_class test_parse_to_json_class)
 
-file(COPY sample.json DESTINATION .)
+file(COPY sample.json sample2.json DESTINATION .)
 
 add_subdirectory(parser)
 

@@ -17,15 +17,19 @@
 namespace json {
 
 template <typename Status>
-JSON readValue(Status& status, Token token=ERROR) {
+inline JSON readValue(Status& status, Token token=ERROR) {
   static_assert(is_valid_status<Status>(), "You need to pass a status object to this function");
+  static_assert(is_forward_iterator<typename Status::iterator>(),
+                "string.hpp needs to copy the iterators and increment the copies "
+                "without affecting the original");
   if (token == ERROR)
     token = require(valueTokens(), status);
   switch (token) {
   case null:
+    readNull(status);
     return {};
   case boolean:
-    return {true};
+    return {readBoolean(status), 0};
   case array: {
     JList result;
     readArray(status, [&](Token t) {

@@ -42,6 +42,10 @@ parseString(Status &status,
                                      /// block of unchanged chars
             f2 recordChar, std::function<void(char32_t)> recordUnicode) {
 
+  static_assert(is_forward_iterator<typename Status::iterator>(),
+                "We need to copy the iterators and increment the copies "
+                "without affecting the original");
+
   using Char = typename Status::iterator_traits::value_type;
   auto& p = status.p;
   const auto& pe = status.pe;
@@ -383,6 +387,9 @@ inline void decodeString(Status& status, OutputIterator out) {
 
   static_assert(is_output_iterator<OutputTraits>(),
                 "We need to be able to write to the output iterator");
+  static_assert(is_forward_iterator<typename Status::iterator>(),
+                "We need to copy the iterators and increment the copies "
+                "without affecting the original");
 
   using Iterator = typename Status::iterator;
   using value_type = typename Status::iterator_traits::value_type;
@@ -401,6 +408,9 @@ inline void decodeString(Status& status, OutputIterator out) {
 template <typename Status>
 inline std::string decodeString(Status& status) {
   std::string result;
+  static_assert(is_forward_iterator<typename Status::iterator>(),
+                "We need to copy the iterators and increment the copies "
+                "without affecting the original");
   result.reserve(getDecodedStringLength(status));
   decodeString(status, std::back_inserter(result));
   return result;

@@ -21,8 +21,9 @@ void readArray(Status &status, std::function<void(Token)> onVal) {
     acceptable.insert(ARRAY_END);
     Token token = require(acceptable, status);
     if (token == ARRAY_END)
-      return; 
+      return;
 #ifndef NDEBUG
+    // Forward iterators can be copied then compared
     auto b4 = p;
     onVal(token);
     assert(b4 != p); // onVal must consume one value

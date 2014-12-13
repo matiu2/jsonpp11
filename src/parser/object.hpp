@@ -31,6 +31,11 @@ std::string best_string_decoder(Status &status) {
 template <typename Status>
 void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
                 std::function<void(Token)> onVal) {
+
+  static_assert(is_forward_iterator<typename Status::iterator>(),
+                "string.hpp needs to copy the iterators and increment the copies "
+                "without affecting the original");
+
   auto& p = status.p;
   auto& pe = status.pe;
   while (p != pe) {
@@ -41,9 +46,14 @@ void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
       break;
     // Read the first attribute name
     std::string attrName = decodeString(status);
+#ifndef NDEBUG
+    // Forward iterators can be copied then compared
     auto b4 = p;
     onAttribute(std::move(attrName));
     assert(b4 == p); // onAttribute must not consume anything
+#else
+    onAttribute(std::move(attrName));
+#endif
     // Read the ':' separator
     require(COLON, status);
     // Read the value
