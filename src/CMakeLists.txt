@@ -1,18 +1,23 @@
 project(src)
 
-add_executable(test_unicode test_unicode.cpp)
-target_link_libraries(test_unicode ${CPP})
-add_test(test_unicode test_unicode)
+if (${BUILD_TESTS})
+    add_executable(test_unicode test_unicode.cpp)
+    add_dependencies(test_unicode bandit)
+    target_link_libraries(test_unicode ${CPP})
+    add_test(test_unicode test_unicode)
 
-add_executable(test_json_class test_json_class.cpp)
-target_link_libraries(test_json_class ${CPP})
-add_test(test_json_class test_json_class)
+    add_executable(test_json_class test_json_class.cpp)
+    add_dependencies(test_json_class bandit)
+    target_link_libraries(test_json_class ${CPP})
+    add_test(test_json_class test_json_class)
 
-add_executable(test_parse_to_json_class test_parse_to_json_class.cpp)
-target_link_libraries(test_parse_to_json_class ${CPP})
-add_test(test_parse_to_json_class test_parse_to_json_class)
+    add_executable(test_parse_to_json_class test_parse_to_json_class.cpp)
+    add_dependencies(test_parse_to_json_class bandit)
+    target_link_libraries(test_parse_to_json_class ${CPP})
+    add_test(test_parse_to_json_class test_parse_to_json_class)
 
-file(COPY sample.json sample2.json DESTINATION .)
+    file(COPY sample.json sample2.json DESTINATION .)
+endif()
 
 add_subdirectory(parser)
 

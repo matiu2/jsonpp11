@@ -3,20 +3,21 @@ project(JSONpp11)
 cmake_minimum_required(VERSION 2.8)
 
 add_definitions( -std=c++1y -Wall -Wextra )
-include_directories(/usr/include/c++/v1)
 
-include(cmake/get_bandit.cmake)
+option(BUILD_TESTS "Build the test suite and download the bandit testing framework" OFF)
 
-enable_testing()
+
+if (${BUILD_TESTS})
+    include(cmake/get_bandit.cmake)
+    enable_testing()
+    include_directories(${BANDIT_INCLUDE_DIR})
+endif()
 
 option(LOCATIONS "Provide a row+col location when a json parsing error is hit" true)
 if(NOT LOCATIONS)
   add_definitions(-DNO_LOCATIONS)
 endif()
 
-find_library(CPP c++) # clang/llvm c++ library that supports trivially_assignable
-
 # All tests go here
-include_directories(${BANDIT_INCLUDE_DIR})
 
 add_subdirectory(src)
