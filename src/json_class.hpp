@@ -217,7 +217,7 @@ public:
   }
 };
 
-std::ostream &operator<<(std::ostream &s, const JMap &j) {
+inline std::ostream &operator<<(std::ostream &s, const JMap &j) {
   s << '{';
   auto entry = j.cbegin();
   auto end = j.cend();
