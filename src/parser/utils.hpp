@@ -46,11 +46,11 @@ Token require(std::set<Token> expected, Status& status) {
 * @throws calls onError for any other token
 */
 template <typename Status>
-Token require(Token required, Status& status) {
+inline Token require(Token required, Status& status) {
   return require(std::set<Token>{required}, status);
 }
 
-const std::set<Token> valueTokens() {
+inline const std::set<Token> valueTokens() {
   return {null, boolean, array, object, number, string};
 }
 

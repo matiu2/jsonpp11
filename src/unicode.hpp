@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <cassert>
+#include <functional>
 
 
 namespace json {

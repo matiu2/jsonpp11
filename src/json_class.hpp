@@ -234,7 +234,7 @@ std::ostream &operator<<(std::ostream &s, const JMap &j) {
   return s;
 }
 
-std::ostream &operator<<(std::ostream &s, const JList &j) {
+inline std::ostream &operator<<(std::ostream &s, const JList &j) {
   s << '[';
   auto entry = j.cbegin();
   auto end = j.cend();
@@ -250,7 +250,7 @@ std::ostream &operator<<(std::ostream &s, const JList &j) {
   return s;
 }
 
-std::ostream& operator <<(std::ostream& s, const JSON& j) {
+inline std::ostream& operator <<(std::ostream& s, const JSON& j) {
     switch(j.type) {
         case JSON::null: s << "null"; break;
         case JSON::boolean: s << (j.value.as_bool ? "true" : "false"); break;
@@ -268,9 +268,7 @@ std::ostream& operator <<(std::ostream& s, const JSON& j) {
     return s;
 }
 
-JSON JBool(bool val) {
-    return JSON(val, 1);
-}
+inline JSON JBool(bool val) { return JSON(val, 1); }
 
 template <typename T>
 std::vector<T> jsonToHomogenousList(const JSON& j) {
