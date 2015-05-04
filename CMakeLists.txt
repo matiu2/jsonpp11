@@ -2,7 +2,7 @@ project(JSONpp11)
 
 cmake_minimum_required(VERSION 2.8)
 
-add_definitions( -std=c++1y -Wall -Wextra )
+add_definitions( -std=c++11 -Wall -Wextra )
 
 option(BUILD_TESTS "Build the test suite and download the bandit testing framework" OFF)
 

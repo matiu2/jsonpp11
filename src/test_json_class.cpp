@@ -145,7 +145,6 @@ go_bandit([]() {
       JSON &lot1 = j.at("Lot 1");
       AssertThat(lot1.whatIs(), Equals(JSON::map));
       JSON &jyear = lot1.at("year");
-      // TODO: make a test that calls .at("Something that doesn't exist");
       AssertThat(jyear.whatIs(), Equals(JSON::number));
       int year(lot1["year"]);
       AssertThat(year, Equals(1974));
