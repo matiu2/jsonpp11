@@ -56,17 +56,17 @@ According to the RFC: http://www.ietf.org/rfc/rfc4627.txt
 
 # Rendering
 
- * bool
- * null
+ * bool - DONE
+ * null - DONE
  * number
    + positive and negative
    + decimals
    + exponent
    + negative exponent
  * string
-   + standard
+   + standard - DONE
    + Escaped quotes (\")
    + Special chars (\b \n \r \t etc)
    + Unicode
-     + UTF8
+     + UTF8 - DONE
      + wide_char_t
