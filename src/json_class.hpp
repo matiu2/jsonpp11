@@ -184,6 +184,14 @@ public:
       assert(type == map);
       return value.as_map.at(i);
     }
+    typename decltype(value.as_map)::iterator find(const std::string &i) {
+      assert(type == map);
+      return value.as_map.find(i);
+    }
+    typename decltype(value.as_map)::const_iterator find(const std::string &i) const {
+      assert(type == map);
+      return value.as_map.find(i);
+    }
     JSON &operator[](const std::string &i) {
       assert(type == map);
       return value.as_map[i];
