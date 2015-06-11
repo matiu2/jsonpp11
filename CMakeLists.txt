@@ -6,7 +6,6 @@ add_definitions( -std=c++11 -Wall -Wextra )
 
 option(BUILD_TESTS "Build the test suite and download the bandit testing framework" OFF)
 
-
 if (${BUILD_TESTS})
     include(cmake/get_bandit.cmake)
     enable_testing()
@@ -21,3 +20,6 @@ endif()
 # All tests go here
 
 add_subdirectory(src)
+
+# This libary has no code, it's only made to help with cmake dependency resulotion
+add_library(jsonpp11 empty.cpp)
