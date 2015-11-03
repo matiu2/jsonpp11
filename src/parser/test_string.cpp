@@ -106,6 +106,17 @@ go_bandit([]() {
       AssertThat(output, Equals(expected));
     });
 
+    it("1.9. Can parse a char* input type", [&]() {
+      std::string data = R"(\uD834\uDD1E")";
+      char* input = new char[data.size()];
+      std::copy(data.begin(), data.end(), input);
+      std::string expected = u8"\U0001D11E";
+      auto status = make_status(input, &input[data.size()]);
+      json::string_reference<char*> output = json::decodeStringLight(status);
+      AssertThat(std::string(output), Equals(expected));
+      delete input;
+    });
+
   });
 });
 

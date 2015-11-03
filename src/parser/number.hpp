@@ -16,9 +16,6 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 
   static_assert(std::is_arithmetic<NumberType>::value,
                 "We can only generate number types");
-  static_assert(std::is_signed<NumberType>::value,
-                "As JSON can generate signed numbers, we should read them as "
-                "signed numbers so as not to corrupt information silently");
 
   static_assert(
       std::is_integral<UIntType>::value,
@@ -55,9 +52,6 @@ inline Output readNumber(Status &status) {
                                            "thrower function; onError");
   static_assert(std::is_arithmetic<Output>::value,
                 "We can only generate number types");
-  static_assert(std::is_signed<Output>::value,
-                "As JSON can generate signed numbers, we should read them as "
-                "signed numbers so as not to corrupt information silently");
 
   auto& p = status.p;
   const auto& pe = status.pe;

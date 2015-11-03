@@ -262,7 +262,9 @@ inline size_t getDecodedStringLength(Status status) {
     result += iterator_difference(ucBegin, ucEnd);
   };
   auto recordChar = [&](char) { ++result; };
-  auto recordUnicode = [&](char32_t u) { result += getNumChars<typename Status::iterator::value_type>(u); };
+  auto recordUnicode = [&](char32_t u) {
+    result += getNumChars<typename Status::iterator_traits::value_type>(u);
+  };
   parseString(status, recordUnchangedChars, recordChar, recordUnicode);
   return result;
 }
@@ -282,10 +284,9 @@ inline size_t getDecodedStringLength(Status status) {
  */
 template <typename Status>
 inline enable_if<
-    is_copy_assignable<remove_pointer<typename Status::iterator>>() &&
-    is_output_iterator<typename Status::iterator>(),
+    is_copy_assignable<remove_pointer<typename Status::iterator>>(),
     string_reference<typename Status::iterator>>
-decodeString(Status &status) {
+decodeStringLight(Status &status) {
 
   static_assert(is_copy_assignable<remove_pointer<typename Status::iterator>>(),
                 "We need to be able to write to the input too");
@@ -301,7 +302,7 @@ decodeString(Status &status) {
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
     if (!hadChangedChars) {
       // If we haven't had any changed chars, just increment our output position
-      end = add_to_iterator(end, subtract_from_iterator(ucEnd, ucBegin));
+      incrementIterator(end, std::distance(ucBegin, ucEnd));
     } else {
       // Overwrite the output. All JSON converstions are shorter than the raw
       // json.
@@ -405,8 +406,7 @@ inline void decodeString(Status& status, OutputIterator out) {
 }
 
 /// Decodes a JSON string
-template <typename Status>
-inline std::string decodeString(Status& status) {
+template <typename Status> std::string decodeString(Status &status) {
   std::string result;
   static_assert(is_forward_iterator<typename Status::iterator>(),
                 "We need to copy the iterators and increment the copies "

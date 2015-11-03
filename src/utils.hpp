@@ -149,9 +149,10 @@ struct show_size_of {
 * @param iter iterator to subtract from
 * @param amount amount to subtract
 */
-template <typename T, typename Y>
-enable_if<is_random_access_iterator<T>()>
-subtract_from_iterator(T& iter, Y amount) {
+template <typename T,
+          typename Y = typename std::iterator_traits<T>::difference_type>
+enable_if<is_random_access_iterator<T>()> subtract_from_iterator(T &iter,
+                                                                 Y amount) {
   iter -= amount;
 }
 
@@ -162,8 +163,10 @@ subtract_from_iterator(T& iter, Y amount) {
 * @param iter iterator to subtract from
 * @param amount amount to subtract
 */
-template <typename T, typename Y>
-void subtract_from_iterator(T& iter, Y amount) {
+template <typename T,
+          typename Y = typename std::iterator_traits<T>::difference_type>
+enable_if<!is_random_access_iterator<T>()> subtract_from_iterator(T &iter,
+                                                                  Y amount) {
   for(int i=0; i<amount; ++i)
     --iter;
 }
@@ -175,9 +178,9 @@ void subtract_from_iterator(T& iter, Y amount) {
 * @param iter iterator to add to
 * @param amount amount to add
 */
-template <typename T, typename Y>
-enable_if<is_random_access_iterator<T>()>
-add_to_iterator(T& iter, Y amount) {
+template <typename T,
+          typename Y = typename std::iterator_traits<T>::difference_type>
+enable_if<is_random_access_iterator<T>()> incrementIterator(T &iter, Y amount) {
   iter += amount;
 }
 
@@ -188,8 +191,9 @@ add_to_iterator(T& iter, Y amount) {
 * @param iter iterator to add to
 * @param amount amount to add
 */
-template <typename T, typename Y>
-void add_to_iterator(T& iter, Y amount) {
+template <typename T,
+          typename Y = typename std::iterator_traits<T>::difference_type>
+enable_if<!is_random_access_iterator<T>()> incrementIterator(T &iter, Y amount) {
   for(int i=0; i<amount; ++i)
     ++iter;
 }
