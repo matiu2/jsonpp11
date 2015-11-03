@@ -3,6 +3,8 @@
 
 #include <type_traits>
 #include <cstring>
+#include <functional>
+#include <sstream>
 
 #include "../utils.hpp"
 
