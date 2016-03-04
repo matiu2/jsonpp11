@@ -153,9 +153,9 @@ public:
             case null: return false;
             case boolean: return value.as_bool;
             case number: return value.as_num != 0;
-            case text: return value.as_string.empty();
-            case map: return value.as_map.empty();
-            case list: return value.as_list.empty();
+            case text: return !value.as_string.empty();
+            case map: return !value.as_map.empty();
+            case list: return !value.as_list.empty();
         }
         return type != null;
     }
