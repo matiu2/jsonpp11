@@ -73,9 +73,15 @@ inline JSON readValue(Status& status, Token token=ERROR) {
 * @return The read object
 */
 template <typename Iterator>
-JSON readValue(Iterator jsonStart, Iterator jsonEnd, ErrorThrower<Iterator> onError= throwError<Iterator>) {
+JSON readValue(Iterator jsonStart, Iterator jsonEnd,
+               ErrorThrower<Iterator> onError = throwError<Iterator>) {
   auto status = make_status(jsonStart, jsonEnd, onError);
   return readValue(status);
 }
-  
+
+template <typename T>
+JSON readValue(const T &source,
+               ErrorThrower<Iterator> onError = throwError<Iterator>) {
+  return readValue(source.begin(), source.end(), throwError);
+}
 }
