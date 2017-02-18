@@ -84,4 +84,10 @@ JSON readValue(const T &source,
                ErrorThrower<Iterator> onError = throwError<Iterator>) {
   return readValue(source.begin(), source.end(), throwError);
 }
+
+template <typename T>
+JSON readValue(T &&source,
+               ErrorThrower<Iterator> onError = throwError<Iterator>) {
+  return readValue(source.begin(), source.end(), throwError);
+}
 }
