@@ -5,6 +5,9 @@
 
 namespace json {
 
+auto is_comparable_to_char =
+    hana::is_valid([](auto &&x) -> decltype(x == 'c') {});
+
 template <typename Iterator,
           typename Iterator_traits = std::iterator_traits<Iterator>>
 struct Status {
@@ -12,17 +15,16 @@ struct Status {
   using iterator = Iterator;
   using iterator_traits = Iterator_traits;
 
-  static_assert(is_input_iterator<iterator_traits>(),
-                "The iterator must be an input iterator");
-  static_assert(is_same<typename iterator_traits::value_type, char>(),
-                "We only work on char input");
-
   iterator p;
   iterator pe;
   ErrorThrower<iterator> _onError = throwError<iterator>;
 
-  Status(iterator p, iterator pe, ErrorThrower<iterator> onError = throwError<iterator>)
-  : p(p), pe(pe), _onError(onError) {}
+  Status(iterator p, iterator pe,
+         ErrorThrower<iterator> onError = throwError<iterator>)
+      : p(p), pe(pe), _onError(onError) {
+    BOOST_HANA_CONSTANT_ASSERT(is_input_iterator(p));
+    BOOST_HANA_CONSTANT_ASSERT(is_comparable_to_char(*p));
+  }
 
   Status& operator =(Status& other) {
     p = other.p;
@@ -52,24 +54,16 @@ make_status(iterator p, iterator pe,
 }
 
 /// Check if something is a valid status
-template <typename T>
-enable_if<
-    is_input_iterator<typename T::iterator_traits>() &&
-        is_copy_assignable<typename T::iterator>() &&
-        is_same<typename T::iterator_traits::value_type, char>() &&
-        is_same<decltype(declval<T>().p), typename T::iterator>() &&
-        is_same<decltype(declval<T>().pe), typename T::iterator>(),
-    T> _status(T);
-substitution_failed _status(...);
-template <typename T> struct check_status {
-  using type = decltype(_status(declval<T>()));
+
+auto is_valid_status = [](auto && status) {
+  auto has_p_and_pe =
+      hana::is_valid([](auto &&status) -> std::tuple<decltype(status.p),
+                                                     decltype(status.pe)>{});
+  return has_p_and_pe(status) && is_input_iterator(status.p) &&
+         hana::traits::is_copy_assignable(hana::type_c<decltype(status.p)>) &&
+         is_comparable_to_char(*status.p) &&
+         is_comparable_to_char(*status.pe);
 };
-template <typename T>
-struct do_is_valid_status : check_substitution<typename check_status<T>::type> {
-};
-template <typename T> constexpr bool is_valid_status() {
-  return do_is_valid_status<T>::value;
-}
 
 // Util functions that depend on status
 
@@ -83,9 +77,7 @@ template <typename Status,
           typename Char = typename Status::iterator_traits::value_type>
 inline bool
 checkStaticString(Status& status, const Char *expected) {
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
   while (*expected)
     if ((*expected++) != (*status.p++))
       return false;
@@ -103,9 +95,7 @@ checkStaticString(Status& status, const Char *expected) {
 template <typename Status,
           typename Char = typename Status::iterator_traits::value_type>
 inline void requireStaticString(Status &status, const Char *expected) {
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
   if (!checkStaticString(status, expected))
     status.onError(std::string("Static String '") + expected +
                    "' doesn't match");

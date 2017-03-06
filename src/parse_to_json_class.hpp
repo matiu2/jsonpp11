@@ -18,10 +18,9 @@ namespace json {
 
 template <typename Status>
 inline JSON readValue(Status& status, Token token=ERROR) {
-  static_assert(is_valid_status<Status>(), "You need to pass a status object to this function");
-  static_assert(is_forward_iterator<typename Status::iterator>(),
-                "string.hpp needs to copy the iterators and increment the copies "
-                "without affecting the original");
+  BOOST_HANA_CONSTANT_ASSERT(is_valid_status(status));
+  BOOST_HANA_CONSTANT_ASSERT(is_forward_iterator(status.p));
+
   if (token == ERROR)
     token = require(valueTokens(), status);
   switch (token) {
@@ -79,15 +78,18 @@ JSON readValue(Iterator jsonStart, Iterator jsonEnd,
   return readValue(status);
 }
 
-template <typename T>
+auto is_container = hana::is_valid(
+    [](auto &&x) -> std::tuple<decltype(x.begin()), decltype(x.end())> {});
+
+template <typename T, typename Iterator = typename T::iterator>
 JSON readValue(const T &source,
                ErrorThrower<Iterator> onError = throwError<Iterator>) {
-  return readValue(source.begin(), source.end(), throwError);
+  return readValue(source.begin(), source.end(), onError);
 }
 
-template <typename T>
+template <typename T, typename Iterator = typename T::iterator>
 JSON readValue(T &&source,
                ErrorThrower<Iterator> onError = throwError<Iterator>) {
-  return readValue(source.begin(), source.end(), throwError);
+  return readValue(source.begin(), source.end(), onError);
 }
 }

@@ -36,9 +36,7 @@ template <typename Status>
 inline Token
 getNextOuterToken(Status& status) {
 
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_ASSERT(is_valid_status(status));
 
   auto& p = status.p;
   const auto& pe = status.pe;
@@ -121,9 +119,7 @@ getNextOuterToken(Status& status) {
  * @param returns the new iterator position
  */
 template <typename Status> inline void readNull(Status &status) {
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
   requireStaticString(
       status, "ull"); // The 'n' was already confirmed by getNextOuterToken
 }
@@ -134,9 +130,7 @@ template <typename Status> inline void readNull(Status &status) {
  * @returns a boolean, true or false
  */
 template <typename Status> inline bool readBoolean(Status &status) {
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
   switch (*status.p++) {
   case 't':
     requireStaticString(status, "rue");

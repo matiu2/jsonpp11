@@ -40,17 +40,17 @@ public:
 // A couple of throwError template functions, that will help choose the correct
 // ParserError class to throw
 
-/// Throws the LocatingParserError
-template <typename Iterator>
-enable_if<has_location<Iterator>(), void> throwError(std::string msg, Iterator iter) {
-  throw LocatingParserError(msg, iter.row, iter.col);
-}
+auto has_row = hana::is_valid([](auto &&x) -> decltype((void)x.row) {});
+auto has_col = hana::is_valid([](auto &&x) -> decltype((void)x.col) {});
 
-/// Throws the ParserError
-template <typename Iterator>
-enable_if<!has_location<Iterator>(), void> throwError(std::string msg, Iterator) {
-  throw ParserError(msg);
-}
+/// Throws the LocatingParserError or ParserError
+template <typename Iterator> void throwError(std::string msg, Iterator iter) {
+  hana::if_(has_row(iter) && has_col(iter),
+            [=](auto &&msg, auto iter) {
+              throw LocatingParserError(std::move(msg), iter.row, iter.col);
+            },
+            [=](auto &&msg, auto) { throw ParserError(std::move(msg)); })(std::move(msg), iter);
+};
 
 /// A callable type that can throw errors for us
 template <typename Iterator>

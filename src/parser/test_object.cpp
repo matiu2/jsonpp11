@@ -11,8 +11,10 @@
 #include <string>
 #include <iterator>
 #include <cassert>
+#include <iostream>
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace json;
 
 go_bandit([]() {
@@ -36,7 +38,12 @@ go_bandit([]() {
       auto onAttribute = [&](std::string &&) { gotAttr = true; };
       auto onVal = [&](json::Token) { gotVal = true; };
 
-      readObject(s, onAttribute, onVal);
+      try {
+        readObject(s, onAttribute, onVal);
+      } catch (std::exception& e) {
+        std::cerr << "JSON: " <<  json;
+        throw;
+      }
   
       AssertThat(gotAttr, Equals(false));
       AssertThat(gotVal, Equals(false));
@@ -61,7 +68,12 @@ go_bandit([]() {
           value = readNumber<int>(s);
       };
 
-      readObject(s, onAttribute, onVal);
+      try {
+        readObject(s, onAttribute, onVal);
+      } catch (std::exception& e) {
+        std::cerr << "JSON: " <<  json;
+        throw;
+      }
   
       AssertThat(attrName, Equals("number"));
       AssertThat(token, Equals(number));
@@ -108,7 +120,13 @@ go_bandit([]() {
         }
       };
 
-      readObject(s, onAttribute, onVal);
+      try {
+        readObject(s, onAttribute, onVal);
+      } catch (std::exception& e) {
+        std::cerr << "JSON: " <<  json;
+        throw;
+      }
+  
 
 
       AssertThat(attributeNames, EqualsContainer(decltype(attributeNames)({"name", "age", "rating", "active"})));

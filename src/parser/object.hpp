@@ -3,7 +3,6 @@
 #include "outer.hpp"
 #include "number.hpp"
 #include "string.hpp"
-//#include "array.hpp"
 #include "../utils.hpp"
 #include "utils.hpp"
 #include "error.hpp"
@@ -13,15 +12,12 @@
 
 namespace json {
 
-template <typename Status>
-enable_if<is_copy_assignable<remove_pointer<typename Status::iterator>>(), std::string>
-best_string_decoder(Status &status) {
-  return decodeStringInPlace(status);
-}
-
-template <typename Status>
-std::string best_string_decoder(Status &status) {
-  return decodeString(status);
+template <typename Status> std::string best_string_decoder(Status &status) {
+  BOOST_HANA_CONSTANT_ASSERT(is_valid_status(status));
+  return hana::if_(is_forward_iterator(status.p) &&
+                       is_output_iterator(status.p),
+                   [&]() { return decodeStringInPlace(status); },
+                   [&]() { return decodeString(status); })();
 }
 
 /// Convenience function to read an object.
@@ -32,9 +28,7 @@ template <typename Status>
 void readObject(Status &status, std::function<void(std::string &&)> onAttribute,
                 std::function<void(Token)> onVal) {
 
-  static_assert(is_forward_iterator<typename Status::iterator>(),
-                "string.hpp needs to copy the iterators and increment the copies "
-                "without affecting the original");
+  BOOST_HANA_CONSTANT_ASSERT(is_forward_iterator(status.p));
 
   auto& p = status.p;
   auto& pe = status.pe;

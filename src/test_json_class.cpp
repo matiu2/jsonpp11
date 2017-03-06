@@ -7,6 +7,7 @@
 
 using namespace bandit;
 using namespace json;
+using namespace snowhouse;
 
 go_bandit([]() {
 

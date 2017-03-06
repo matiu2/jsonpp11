@@ -6,6 +6,7 @@
 #include "unicode.hpp"
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace json;
 
 go_bandit([]() {
@@ -76,7 +77,8 @@ go_bandit([]() {
       unsigned char input[] = {0xFE};
       std::u32string output = U"";
       AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
-      AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 first char"));
+      AssertThat(LastException<UnicodeError>().what(),
+                 Is().EqualTo("Bad utf-8 first char"));
     });
 
     it("2.7 Can detect a bad mid stream char with extra bit set", [&]() {
@@ -85,7 +87,8 @@ go_bandit([]() {
       unsigned char input[] = {0xE0, 0xC0};
       std::u32string output = U"";
       AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
-      AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 char"));
+      AssertThat(LastException<UnicodeError>().what(),
+                 Is().EqualTo("Bad utf-8 char"));
     });
 
     it("2.8 Can detect a bad mid stream char with extra bit set", [&]() {
@@ -94,7 +97,8 @@ go_bandit([]() {
       unsigned char input[] = {0xE0, 0x00};
       std::u32string output = U"";
       AssertThrows(UnicodeError, from8(input, std::back_inserter(output)));
-      AssertThat(LastException<UnicodeError>().what(), Is().EqualTo("Bad utf-8 char"));
+      AssertThat(LastException<UnicodeError>().what(),
+                 Is().EqualTo("Bad utf-8 char"));
     });
 
   });
@@ -152,7 +156,8 @@ go_bandit([]() {
     it("3.5 Can write a 6 byte encoded char", [&]() {
       char32_t input[] = {0x7FFFFFFF};
       std::basic_string<unsigned char> output = {};
-      std::basic_string<unsigned char> expected = {0xFD, 0xBF, 0xBF, 0xBF, 0xBF, 0xBF};
+      std::basic_string<unsigned char> expected = {0xFD, 0xBF, 0xBF,
+                                                   0xBF, 0xBF, 0xBF};
       to8(input, std::back_inserter(output));
       AssertThat(output, Equals(expected));
     });

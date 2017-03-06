@@ -54,8 +54,8 @@ struct UnicodeError : std::runtime_error {
 template <typename In, typename Out,
           typename InTraits=std::iterator_traits<In>>
 inline void from8(In in, Out out) {
-  static_assert(is_input_iterator<In>(), "We read in UTF-8 and output UTF-32");
-  static_assert(is_output_iterator<Out>(), "We read in UTF-8 and output UTF-32");
+  BOOST_HANA_CONSTANT_ASSERT(is_input_iterator(in));
+  BOOST_HANA_CONSTANT_ASSERT(is_output_iterator(out));
   static_assert(sizeof(typename InTraits::value_type) == 1, "Expected the input to be 8 bits at a time");
 
   /*  Nibble table
@@ -153,8 +153,8 @@ inline void from8(In in, Out out) {
 template <typename In, typename Out, typename InTraits = std::iterator_traits<In>,
           typename OutTraits = std::iterator_traits<Out>>
 inline void from16(In in, Out out) {
-  static_assert(is_input_iterator<In>(), "We read in UTF-16 and output UTF-32");
-  static_assert(sizeof(typename InTraits::value_type) == 2, "Expected the input to be 16 bits at a time");
+  BOOST_HANA_CONSTANT_ASSERT(is_input_iterator(in));
+  static_assert(sizeof(decltype(*in)) == 2, "Expected the input to be 16 bits at a time");
 
   // Is this in one of the first plane ?
   if ((*in <= 0xD7FF) || (*in >= 0xE000)) {
@@ -182,11 +182,10 @@ inline void from16(In in, Out out) {
 * @param in The input iterator (should provide 32 bit chars)
 * @param out The output iterator (we write 8 bit chars)
 */
-template <typename In, typename Out,
-          typename InTraits=std::iterator_traits<In>>
+template <typename In, typename Out>
 inline int to8(In in, Out out) {
-  static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-8");
-  static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
+  BOOST_HANA_CONSTANT_CHECK(is_input_iterator(in));
+  static_assert(sizeof(decltype(*in)) == 4, "Expected the input to be 32 bits wide");
 
   using Char = unsigned char;
 
@@ -251,8 +250,8 @@ inline int to8(In in, Out out) {
 template <typename In, typename Out,
           typename InTraits=std::iterator_traits<In>>
 inline int to16(In in, Out out) {
-  static_assert(is_input_iterator<In>(), "We read in UTF-32 and output UTF-16");
-  static_assert(sizeof(typename InTraits::value_type) == 4, "Expected the input to be 32 bits wide");
+  BOOST_HANA_CONSTANT_CHECK(is_input_iterator(in));
+  static_assert(sizeof(decltype(*in)) == 4, "Expected the input to be 32 bits wide");
 
   // Is this in one of the first plane ?
   int bytesWritten = 1;

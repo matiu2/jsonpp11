@@ -6,6 +6,7 @@
 #include "outer.hpp"
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace json;
 
 go_bandit([]() {

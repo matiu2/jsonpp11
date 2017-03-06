@@ -16,6 +16,10 @@ if (${BUILD_TESTS})
     target_link_libraries(test_parse_to_json_class ${CPP})
     add_test(test_parse_to_json_class test_parse_to_json_class)
 
+    add_executable(test_utils test_utils.cpp)
+    target_link_libraries(test_utils ${CPP})
+    add_test(test_utils test_utils)
+
     file(COPY sample.json sample2.json DESTINATION .)
 endif()
 

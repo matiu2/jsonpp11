@@ -29,21 +29,22 @@ go_bandit([]() {
       std::string json(std::istreambuf_iterator<char>(file.rdbuf()),
                        std::istreambuf_iterator<char>());
       JSON result = readValue(json.begin(), json.end());
-      auto& access = result.at("access");
-      auto& token = access["token"];
+      auto &access = result.at("access");
+      auto &token = access["token"];
       std::string id = token.at("id");
-      AssertThat(id, Equals("930fa23xxxxxxxxxxd711582ac0df492"));
+      AssertThat(id, snowhouse::Equals("930fa23xxxxxxxxxxd711582ac0df492"));
     });
     it("1.1 - Can read a complex object v2", [&]() {
       std::ifstream f("sample2.json");
       std::string json(makeLocating(std::istreambuf_iterator<char>(f)),
                        makeLocating(std::istreambuf_iterator<char>{}));
-      //noskipws(json);
-      //auto start = makeLocating(std::istream_iterator<char>(json));
-      //auto end = makeLocating(typename decltype(start)::original_type{});
+      // noskipws(json);
+      // auto start = makeLocating(std::istream_iterator<char>(json));
+      // auto end = makeLocating(typename decltype(start)::original_type{});
       JSON result = readValue(json.begin(), json.end());
       std::string content_type = result.at("headers").at("Content-Type");
-      AssertThat(content_type, Equals("application/x-www-form-urlencoded"));
+      AssertThat(content_type,
+                 snowhouse::Equals("application/x-www-form-urlencoded"));
     });
   });
 

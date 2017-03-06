@@ -5,7 +5,7 @@ ExternalProject_Add(
     bandit
     PREFIX bandit
     GIT_REPOSITORY https://github.com/joakimkarlsson/bandit.git
-    UPDATE_COMMAND echo # No need to update all the time once you have it
+    #UPDATE_COMMAND echo # No need to update all the time once you have it
     CONFIGURE_COMMAND echo # We just need the source
     BUILD_COMMAND echo # We just need the source
     INSTALL_COMMAND echo # We just need the source

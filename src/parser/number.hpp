@@ -47,9 +47,7 @@ inline NumberType json_num2cpp_num(bool isNeg, UIntType int_part, int expPart) {
 template <typename Output, typename Status>
 inline Output readNumber(Status &status) {
 
-  static_assert(is_valid_status<Status>(), "The status object must have "
-                                           "iterators p, pe, and an error "
-                                           "thrower function; onError");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
   static_assert(std::is_arithmetic<Output>::value,
                 "We can only generate number types");
 

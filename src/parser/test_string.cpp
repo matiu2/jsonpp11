@@ -7,6 +7,7 @@
 #include "string.hpp"
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace json;
 
 // Just for snowhouse 'Equals' to work
@@ -93,9 +94,8 @@ go_bandit([]() {
 
     it("1.7. Can detect a bad unicode char", [&]() {
       std::string input = R"(\u03E01111111111111")";
-      AssertThrows(ParserError,
-                   auto status = make_status(input.begin(), input.end());
-                   json::decodeString(status));
+      auto status = make_status(input.begin(), input.end());
+      AssertThrows(ParserError, json::decodeString(status));
     });
 
     it("1.8. Can parse a 32 bit unicode char", [&]() {
@@ -114,7 +114,7 @@ go_bandit([]() {
       auto status = make_status(input, &input[data.size()]);
       json::string_reference<char*> output = json::decodeStringLight(status);
       AssertThat(std::string(output), Equals(expected));
-      delete input;
+      delete[] input;
     });
 
   });

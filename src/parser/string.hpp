@@ -42,16 +42,16 @@ parseString(Status &status,
                                      /// block of unchanged chars
             f2 recordChar, std::function<void(char32_t)> recordUnicode) {
 
-  static_assert(is_forward_iterator<typename Status::iterator>(),
-                "We need to copy the iterators and increment the copies "
-                "without affecting the original");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
+  BOOST_HANA_CONSTANT_ASSERT(is_forward_iterator(status.p));
 
   using Char = typename Status::iterator_traits::value_type;
   auto& p = status.p;
   const auto& pe = status.pe;
 
   /// Handle the 4 digits of a unicode char
-  std::function<char32_t(Status &)> readUnicode = [&readUnicode](Status &s) -> char32_t {
+  std::function<char32_t(Status &)> readUnicode =
+      [&readUnicode](Status &s) -> char32_t {
     char16_t u[2] = {0,0};
     int uniCharNibbles = 0;
     auto& p = s.p;
@@ -179,19 +179,7 @@ template <typename Iterator> struct string_reference {
   inline iterator end() { return _end; }
   inline iterator begin() const { return _begin; }
   inline iterator end() const { return _end; }
-  inline size_t size() const {
-    if (is_random_access_iterator<Iterator>())
-      return _end - _begin;
-    else {
-      size_t result = 0;
-      Iterator i = _begin;
-      while (i != _end) {
-        ++i;
-        ++result;
-      }
-      return result;
-    }
-  }
+  inline size_t size() const { return std::distance(_begin, _end); }
   template <typename T> bool operator==(const T &other) const {
     return equal(cbegin(), cend(), other.cbegin(), other.cend());
   }
@@ -217,8 +205,11 @@ template <typename Iterator> struct string_reference {
  */
 template <typename Status>
 inline size_t getRawStringLength(Status status) {
-  static_assert(is_valid_status<Status>(),
-                "Status should derive from json::Status");
+
+  BOOST_HANA_CONSTANT_CHECK_MESSAGE(is_valid_status(status),
+                                    "The status object must have "
+                                    "iterators p, pe, and an error "
+                                    "thrower function; onError");
 
   auto& p = status.p;
   const auto& pe = status.pe;
@@ -259,7 +250,7 @@ inline size_t getDecodedStringLength(Status status) {
 
   size_t result = 0;
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
-    result += iterator_difference(ucBegin, ucEnd);
+    result += std::distance(ucBegin, ucEnd);
   };
   auto recordChar = [&](char) { ++result; };
   auto recordUnicode = [&](char32_t u) {
@@ -283,18 +274,16 @@ inline size_t getDecodedStringLength(Status status) {
  * @returns a pair of iterators to the beginning and end of the decoded string
  */
 template <typename Status>
-inline enable_if<
-    is_copy_assignable<remove_pointer<typename Status::iterator>>(),
-    string_reference<typename Status::iterator>>
-decodeStringLight(Status &status) {
+inline string_reference<typename Status::iterator> decodeStringLight(Status &status) {
 
-  static_assert(is_copy_assignable<remove_pointer<typename Status::iterator>>(),
-                "We need to be able to write to the input too");
+  BOOST_HANA_CONSTANT_CHECK(is_valid_status(status));
+  BOOST_HANA_CONSTANT_CHECK(is_forward_iterator(status.p) &&
+                            is_output_iterator(status.p));
 
   using Iterator = typename Status::iterator;
   using Char = typename Status::iterator_traits::value_type;
 
-  auto& p = status.p;
+  auto &p = status.p;
 
   Iterator begin = p, end = p;
   bool hadChangedChars = false;
@@ -302,7 +291,12 @@ decodeStringLight(Status &status) {
   auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
     if (!hadChangedChars) {
       // If we haven't had any changed chars, just increment our output position
-      incrementIterator(end, std::distance(ucBegin, ucEnd));
+      boost::hana::if_(is_random_access_iterator(end),
+                       [](auto &end, size_t n) { end += n; },
+                       [](auto &end, size_t n) {
+                         for (size_t i = 0; i < n; ++i)
+                           ++end;
+                       })(end, std::distance(ucBegin, ucEnd));
     } else {
       // Overwrite the output. All JSON converstions are shorter than the raw
       // json.
@@ -312,7 +306,10 @@ decodeStringLight(Status &status) {
     }
   };
   // Just advance the end pointer
-  auto recordChar = [&](Char c) { *end = c; ++end; };
+  auto recordChar = [&](Char c) {
+    *end = c;
+    ++end;
+  };
   // UTF-8 encode a unicode char
   auto recordUnicode = [&](char32_t u) {
     switch (sizeof(Char)) {
@@ -359,9 +356,8 @@ decodeStringLight(Status &status) {
  */
 template <typename Status, typename OutputIterator,
           typename OutputTraits = std::iterator_traits<OutputIterator>>
-size_t copyRawString(Status& status, OutputIterator out) {
-  static_assert(is_output_iterator<OutputTraits>(),
-                "We need to be able to write to the output");
+size_t copyRawString(Status &status, OutputIterator out) {
+  BOOST_HANA_CONSTANT_ASSERT(is_output_iterator(out));
   size_t result = getRawStringLength(status.p, status.pe); // end is written to
   std::copy_n(status.p, result, out);
   return result;
@@ -384,20 +380,19 @@ size_t copyRawString(Status& status, OutputIterator out) {
 */
 template <typename Status, typename OutputIterator,
           typename OutputTraits = std::iterator_traits<OutputIterator>>
-inline void decodeString(Status& status, OutputIterator out) {
+inline void decodeString(Status &status, OutputIterator out) {
 
-  static_assert(is_output_iterator<OutputTraits>(),
-                "We need to be able to write to the output iterator");
-  static_assert(is_forward_iterator<typename Status::iterator>(),
-                "We need to copy the iterators and increment the copies "
-                "without affecting the original");
+  BOOST_HANA_CONSTANT_ASSERT(is_output_iterator(out));
+  BOOST_HANA_CONSTANT_ASSERT(is_valid_status(status));
+  BOOST_HANA_CONSTANT_ASSERT(is_forward_iterator(status.p));
 
   using Iterator = typename Status::iterator;
   using value_type = typename Status::iterator_traits::value_type;
 
   // Just increments the output string's length
-  auto recordUnchangedChars =
-      [&](Iterator ucBegin, Iterator ucEnd) { std::copy(ucBegin, ucEnd, out); };
+  auto recordUnchangedChars = [&](Iterator ucBegin, Iterator ucEnd) {
+    std::copy(ucBegin, ucEnd, out);
+  };
   // Just advance the end pointer
   auto recordChar = [&](value_type c) { *(out++) = c; };
   // UTF-8 encode a unicode char
@@ -407,13 +402,12 @@ inline void decodeString(Status& status, OutputIterator out) {
 
 /// Decodes a JSON string
 template <typename Status> std::string decodeString(Status &status) {
+  BOOST_HANA_CONSTANT_ASSERT(is_valid_status(status));
+  BOOST_HANA_CONSTANT_ASSERT(is_forward_iterator(status.p));
+
   std::string result;
-  static_assert(is_forward_iterator<typename Status::iterator>(),
-                "We need to copy the iterators and increment the copies "
-                "without affecting the original");
   result.reserve(getDecodedStringLength(status));
   decodeString(status, std::back_inserter(result));
   return result;
 }
-
 }
