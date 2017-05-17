@@ -80,14 +80,14 @@ JSON readValue(Iterator jsonStart, Iterator jsonEnd,
 }
 
 template <typename T>
-JSON readValue(const T &source,
-               ErrorThrower<Iterator> onError = throwError<Iterator>) {
-  return readValue(source.begin(), source.end(), throwError);
+JSON readValue(const T &source, ErrorThrower<decltype(source.begin())> onError =
+                                    throwError<decltype(source.begin())>) {
+  return readValue(source.begin(), source.end(), onError);
 }
 
 template <typename T>
-JSON readValue(T &&source,
-               ErrorThrower<Iterator> onError = throwError<Iterator>) {
-  return readValue(source.begin(), source.end(), throwError);
+JSON readValue(T &&source, ErrorThrower<decltype(source.begin())> onError =
+                               throwError<decltype(source.begin())>) {
+  return readValue(source.begin(), source.end(), onError);
 }
 }
