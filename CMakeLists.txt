@@ -6,6 +6,8 @@ add_definitions( -std=c++14 -Wall -Wextra )
 
 option(BUILD_TESTS "Build the test suite and download the bandit testing framework" OFF)
 
+include(cmake/get_hana.cmake)
+
 if (${BUILD_TESTS})
     include(cmake/get_bandit.cmake)
     enable_testing()
