@@ -87,9 +87,15 @@ JSON readValue(const T &source,
   return readValue(source.begin(), source.end(), onError);
 }
 
-template <typename T, typename Iterator = typename T::iterator>
-JSON readValue(T &&source,
-               ErrorThrower<Iterator> onError = throwError<Iterator>) {
+template <typename T>
+JSON readValue(const T &source, ErrorThrower<decltype(source.begin())> onError =
+                                    throwError<decltype(source.begin())>) {
+  return readValue(source.begin(), source.end(), onError);
+}
+
+template <typename T>
+JSON readValue(T &&source, ErrorThrower<decltype(source.begin())> onError =
+                               throwError<decltype(source.begin())>) {
   return readValue(source.begin(), source.end(), onError);
 }
 }
